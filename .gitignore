@@ -1,0 +1,21 @@
+# Répertoires Maven
+target/
+
+# Fichiers de configuration IntelliJ IDEA
+.idea/
+
+# Répertoires et fichiers de Maven Wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Configuration SmartTomcat
+.smarttomcat/
+
+# Fichiers de logs ou autres fichiers temporaires
+*.log
+
+# Autres fichiers potentiellement sensibles ou temporaires
+*.class
+*.jar
+*.war
