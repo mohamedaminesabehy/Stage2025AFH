@@ -1,0 +1,149 @@
+<!-- Bouton de notification dans la barre d'outils -->
+<div class="notification-trigger">
+  <button mat-icon-button (click)="togglePanel()" [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn">
+    <mat-icon>notifications</mat-icon>
+  </button>
+</div>
+
+<!-- Overlay -->
+<div class="notification-overlay" *ngIf="isOpen" (click)="closePanel()"></div>
+
+<!-- Panel de notifications -->
+<div class="notifications-panel" *ngIf="isOpen" [@slideIn]>
+  
+  <!-- Header du panel -->
+  <div class="panel-header">
+    <div class="header-title">
+      <mat-icon>{{getSelectedFilterIcon()}}</mat-icon>
+      <h3>{{getSelectedFilterLabel()}}</h3>
+      <mat-chip class="count-chip" *ngIf="filteredNotifications.length > 0">
+        {{filteredNotifications.length}}
+      </mat-chip>
+    </div>
+    
+    <div class="header-actions">
+      <!-- Indicateur de connexion -->
+      <div class="connection-status" [ngClass]="{'connected': isConnected, 'disconnected': !isConnected}">
+        <mat-icon>{{isConnected ? 'wifi' : 'wifi_off'}}</mat-icon>
+        <span class="status-text">{{isConnected ? 'Connecté' : 'Déconnecté'}}</span>
+      </div>
+      
+      <!-- Menu d'actions -->
+      <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #actionsMenu="matMenu">
+        <button mat-menu-item (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+          <mat-icon>done_all</mat-icon>
+          <span>Tout marquer comme lu</span>
+        </button>
+        <button mat-menu-item (click)="clearAllNotifications()" [disabled]="notifications.length === 0">
+          <mat-icon>clear_all</mat-icon>
+          <span>Supprimer tout</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="addTestNotification()">
+          <mat-icon>add</mat-icon>
+          <span>Ajouter test</span>
+        </button>
+      </mat-menu>
+      
+      <!-- Bouton fermer -->
+      <button mat-icon-button (click)="closePanel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="panel-filters">
+    <mat-chip-list>
+      <mat-chip 
+        *ngFor="let filter of filterOptions" 
+        [selected]="selectedFilter === filter.value"
+        (click)="onFilterChange(filter.value)"
+        [color]="selectedFilter === filter.value ? 'primary' : ''"
+        class="filter-chip">
+        <mat-icon>{{filter.icon}}</mat-icon>
+        {{filter.label}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+
+  <!-- Liste des notifications -->
+  <div class="notifications-list">
+    <div class="notification-item"
+         *ngFor="let notification of filteredNotifications"
+         [ngClass]="{'unread': !notification.read, 'read': notification.read}"
+         (click)="onNotificationClick(notification)"
+         [@fadeIn]>
+      
+      <!-- Icône de type -->
+      <div class="notification-icon" [ngClass]="getNotificationColor(notification.type)">
+        <mat-icon>{{getNotificationIcon(notification.type)}}</mat-icon>
+      </div>
+      
+      <!-- Contenu -->
+      <div class="notification-content">
+        <div class="notification-header">
+          <h4 class="notification-title">{{notification.title}}</h4>
+          <div class="notification-meta">
+            <mat-icon class="priority-icon" [color]="getPriorityColor(notification.priority)">
+              {{getPriorityIcon(notification.priority)}}
+            </mat-icon>
+            <span class="notification-time">{{formatTimeAgo(notification.timestamp)}}</span>
+          </div>
+        </div>
+        
+        <p class="notification-message">{{notification.message}}</p>
+        
+        <div class="notification-footer">
+          <mat-chip class="category-chip">{{notification.category}}</mat-chip>
+          <div class="notification-actions">
+            <button mat-icon-button 
+                    (click)="markAsRead(notification); $event.stopPropagation()" 
+                    *ngIf="!notification.read"
+                    matTooltip="Marquer comme lu">
+              <mat-icon>done</mat-icon>
+            </button>
+            <button mat-icon-button 
+                    (click)="removeNotification(notification); $event.stopPropagation()"
+                    matTooltip="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Indicateur non lu -->
+      <div class="unread-indicator" *ngIf="!notification.read"></div>
+    </div>
+    
+    <!-- Message vide -->
+    <div class="empty-state" *ngIf="filteredNotifications.length === 0">
+      <mat-icon class="empty-icon">{{getSelectedFilterIcon()}}</mat-icon>
+      <h4>Aucune notification</h4>
+      <p *ngIf="selectedFilter === 'all'">Vous n'avez aucune notification pour le moment.</p>
+      <p *ngIf="selectedFilter === 'unread'">Toutes vos notifications ont été lues.</p>
+      <p *ngIf="selectedFilter !== 'all' && selectedFilter !== 'unread'">
+        Aucune notification de type "{{getSelectedFilterLabel()}}" trouvée.
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="panel-footer" *ngIf="notifications.length > 0">
+    <div class="footer-stats">
+      <span class="total-count">{{notifications.length}} notification{{notifications.length > 1 ? 's' : ''}}</span>
+      <span class="unread-count" *ngIf="unreadCount > 0">{{unreadCount}} non lue{{unreadCount > 1 ? 's' : ''}}</span>
+    </div>
+    
+    <div class="footer-actions">
+      <button mat-button color="primary" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+        <mat-icon>done_all</mat-icon>
+        Tout lire
+      </button>
+    </div>
+  </div>
+
+</div>

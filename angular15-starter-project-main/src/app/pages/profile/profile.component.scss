@@ -1,0 +1,148 @@
+.container {
+  min-width: 200vh;
+ // padding-left: 1px;
+  height: auto;  /* Prend toute la hauteur de la fenêtre */
+  //display: block;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  margin-block: 5px;
+}
+
+/* Carte de profil */
+.profile-card {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 90%;  /* Occupe 90% de la largeur de la fenêtre */
+  min-width: 200vh;  /* Largeur maximale */
+  height: 90vh;
+  //display: flex;
+  flex-direction: column;
+}
+
+/* En-tête de la carte */
+.profile-card-header {
+  background-color: #3f51b5;
+  color: white;
+  padding: 20px;
+  border-bottom: 2px solid #004d40;
+}
+
+/* Titre de la carte */
+.profile-title {
+  font-size: 2rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Contenu de la carte */
+.profile-card-content {
+  padding: 20px;
+  overflow-y: scroll;
+}
+
+/* Flexbox pour organiser l'image et les détails du profil */
+.profile-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 2px solid #3f51b5;  /* Ajoute une bordure de 2px de couleur #00796b */
+  border-radius: 8px;          /* Arrondir légèrement les coins */
+  padding: 5px;               /* Ajoute un peu d'espace à l'intérieur de la bordure */
+  background-color: #fff;      /* Optionnel : vous pouvez donner un fond blanc */
+  box-sizing: border-box;
+}
+
+/* Image de profil */
+.profile-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 157px;
+}
+
+.avatar {
+  border-radius: 50%;
+  border: 3px solid #3f51b5;
+  width: 217px;
+  height: 216px;
+}
+
+/* Détails du profil */
+.profile-details {
+  flex: 2;
+  padding-right: 645px;
+  background-color: #f9f9f9; /* Fond léger pour séparer visuellement la section */
+  border-radius: 8px; /* Coins arrondis pour un effet moderne */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-item strong {
+  color: #0c0f0f; /* Colorie le texte important (le contenu en gras) pour le mettre en valeur */
+  font-weight: bold;  /* Augmente l'épaisseur du texte pour le rendre plus lisible */
+}
+
+h2 {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.6rem; /* Taille de police plus grande pour les titres */
+  color: #333; /* Une couleur sombre pour les titres */
+  margin-bottom: 15px;  /* Ajoute un espace sous les titres */
+}
+
+h2::after {
+  content: ''; /* Crée une ligne sous les titres */
+  display: block;
+  width: 120px; /* Largeur de la ligne sous le titre */
+  height: 3px; /* Hauteur de la ligne */
+  background-color: #3f51b5; /* Couleur de la ligne */
+  margin-top: 10px;  /* Espace entre le titre et la ligne */
+}
+
+.profile-item {
+  margin-bottom: 15px;
+}
+
+.profile-item h2 {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.profile-item p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 50px;
+  line-height: 1.6; /* Un peu d'espace entre les lignes pour améliorer la lecture */
+  padding-bottom: 10px; /* Ajoute un petit padding sous le texte pour plus d'espace */
+  border-bottom: 1px solid #ccc;
+}
+
+/* Bouton de retour */
+.profile-button {
+  width: 20%;
+  padding: 1px;
+  font-size: 1.1rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.profile-button:hover {
+  background-color: #3f51b5;
+}
+
+/* Espacement et alignement des actions */
+.profile-card-actions {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-right: 386px;
+}
+
+

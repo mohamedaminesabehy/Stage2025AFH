@@ -1,0 +1,119 @@
+.example-spacer {
+    flex: 1 1 auto;
+  }
+
+  .main-body {
+    padding-top: 20px;
+    margin: 0 auto;
+    max-width: 100%;
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .toolbar-button {
+    margin-left: 1rem; /* Ajustez la valeur selon vos besoins */
+  }
+  
+  /* Si vous souhaitez ajouter plus d'espace entre les boutons uniquement */
+  mat-toolbar button:first-of-type {
+    margin-right: 1rem; /* Espace entre les deux boutons */
+  }
+
+     /* Style pour le spinner */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Assurez-vous que le spinner est au-dessus des autres éléments */
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+  border-radius: 50%;
+  border-top-color: transparent;
+  border-right-color: rgba(0, 0, 0, 0.2);
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+  border-left-color: #007bff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Style pour le message d'erreur */
+.error-message {
+  color: red;
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  overflow: hidden;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  z-index: 9999; 
+}
+
+/* Centrage et amélioration du style des en-têtes de tableau */
+.mat-header-cell {
+  text-align: center; /* Centre le texte */
+  font-weight: bold; /* Met le texte en gras */
+  background-color: #4CAF50; /* Couleur de fond verte */
+  color: white; /* Texte blanc */
+  padding: 12px 16px; /* Ajout de padding pour rendre le texte plus espacé */
+  border: 1px solid #ddd; /* Bordure fine autour de chaque en-tête */
+  font-size: 16px; /* Taille de police pour les en-têtes */
+}
+
+/* Ajouter un effet de survol sur les en-têtes */
+.mat-header-cell:hover {
+  background-color: #45a049; /* Change la couleur au survol */
+  cursor: pointer; /* Change le curseur pour montrer qu'on peut trier */
+}
+
+/* Améliorer l'apparence du tableau */
+table {
+  width: 100%; /* Tableau plein largeur */
+  border-collapse: collapse; /* Fusionne les bordures */
+}
+
+/* Ajout d'une bordure aux cellules */
+.mat-cell, .mat-header-cell {
+  border: 1px solid #ddd; /* Bordure légère autour des cellules */
+  padding: 8px; /* Espacement pour les cellules */
+}
+
+/* Appliquer un style spécifique à la colonne des actions */
+.mat-column-actions {
+  width: 200px; /* Ajuste la largeur de la colonne des actions */
+}
+
+/* Personnaliser l'apparence des cellules de données */
+.centered-cell {
+  text-align: center; /* Centre le texte */
+  padding: 10px 15px; /* Espacement pour un meilleur confort visuel */
+  font-size: 14px; /* Taille de police */
+}
+
+/* Styles généraux pour les lignes du tableau */
+tr:nth-child(even) {
+  background-color: #f2f2f2; /* Fond gris clair pour les lignes paires */
+}
+
+tr:hover {
+  background-color: #f1f1f1; /* Fond plus clair au survol de ligne */
+}

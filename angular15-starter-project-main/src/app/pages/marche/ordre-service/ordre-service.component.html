@@ -1,0 +1,187 @@
+<mat-dialog-content>
+    <h2 mat-dialog-title>Gestion des Ordres-Service</h2>
+    <div class="overlay" *ngIf="(_spinnerService.spinnerCounter$ | async) > 0">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="error-message" *ngIf="loadingError">
+        {{ loadingError }}
+    </div>
+
+    <form [formGroup]="ordreServiceForm">
+
+        <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start"
+            (selectedIndexChange)="selectedIndexChange($event)" [selectedIndex]="selectedIndex" #matGroup>
+
+            <mat-tab label="Rubrique Affectation des Ordres-Service">
+                <br>
+                <mat-card appearance="outlined">
+                    <mat-card-header>
+                        <mat-card-title>Affectation des ordres-service
+                            <button class="btn btn-primary" type="button"
+                                (click)="addOrdreService()">+
+                            </button>
+                        </mat-card-title>
+                    </mat-card-header>
+                    <br>
+                    <mat-card-content>
+                        <div formArrayName="ordreservices" class="table-responsive-marche-ordre-service">
+                            <table class="table table-striped" style="overflow-y: hidden; margin-bottom: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th colspan="11" class="text-center" style="padding-right: 500px;">Numéro
+                                            Marché: {{ numMarche }} - Numéro Etape: {{ numEtape }}
+                                        </th>
+                                    </tr>
+                                    <tr *ngIf="!ordreservices.errors?.['auMoinsUnOrdreService']">
+                                        <th scope="col">OS</th>
+                                        <th scope="col">Type OS</th>
+                                         <th scope="col">Date Début</th>
+                                        <th scope="col">Date Fin</th>
+                                        <th scope="col">Date edition de l'OS</th>
+                                        <th scope="col">Date notification de l'OS</th>
+                                        <th scope="col">Designation</th>
+                                        <th scope="col">Code OS</th>
+                                        <th  scope="col">Durée OS</th> 
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let ordreservice of ordreservices.controls; let i = index"
+                                        [formGroupName]="i" class="text-center">
+
+                                        <td [formGroupName]="'id'">
+                                            <mat-form-field appearance="outline" style="width: 70px;">
+                                                <mat-label>OS</mat-label>
+                                                <input matInput formControlName="numOs" readonly />
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" style="width: 180px; height: 50px;">
+                                                <mat-label>Type Ordre-Service</mat-label>
+                                                <mat-select formControlName="idTypeOrdreService" class="large-select" >
+                                                    <mat-option
+                                                        *ngFor="let prm_type_ordre_service of prm_type_ordre_services"
+                                                        [value]="prm_type_ordre_service.id"
+                                                        >
+                                                        {{ prm_type_ordre_service.designation }}
+                                                    </mat-option>
+                                                    <mat-option *ngIf="isLoading" disabled>
+                                                        <div
+                                                            style="display: flex; justify-content: center; padding: 10px;">
+                                                            <mat-spinner diameter="20"></mat-spinner>
+                                                        </div>
+                                                    </mat-option>
+                                                </mat-select>
+                                                <mat-error *ngIf="ordreservice.get('idTypeOrdreService')?.hasError('required')">
+                                                    Type ordre-service est requis.
+                                                </mat-error>
+                                            </mat-form-field>
+                                            <button mat-fab (click)="resetPrmTypeOrdreServiceSelection(i)"
+                                            style="width: 37px; padding-bottom: 11px; margin-left: 10px; margin-top: 0px;">
+                                            <mat-icon
+                                              style="margin-left: 0px;padding-bottom: 0px; margin-bottom: 0px; width: 23px;">delete</mat-icon>
+                                          </button>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" class="full-width"
+                                                style="width: 160px;">
+                                                <mat-label>Date Début</mat-label>
+                                                <input matInput [matDatepicker]="pickerdateDebut"
+                                                    formControlName="dateDebut">
+                                                <mat-datepicker-toggle matIconSuffix
+                                                    [for]="pickerdateDebut"></mat-datepicker-toggle>
+                                                <mat-datepicker #pickerdateDebut></mat-datepicker>
+                                                <mat-error *ngIf="ordreservice.get('dateDebut')?.hasError('required')">
+                                                    La date début est requise.
+                                                </mat-error>
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" class="full-width"
+                                                style="width: 160px;">
+                                                <mat-label>Date Fin</mat-label>
+                                                <input matInput [matDatepicker]="pickerdateFin"
+                                                    formControlName="dateFin">
+                                                <mat-datepicker-toggle matIconSuffix
+                                                    [for]="pickerdateFin"></mat-datepicker-toggle>
+                                                <mat-datepicker #pickerdateFin></mat-datepicker>
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" class="full-width"
+                                                style="width: 160px;">
+                                                <mat-label>Date Edition</mat-label>
+                                                <input matInput [matDatepicker]="pickerdateEditOs"
+                                                    formControlName="dateEditOs">
+                                                <mat-datepicker-toggle matIconSuffix
+                                                    [for]="pickerdateEditOs"></mat-datepicker-toggle>
+                                                <mat-datepicker #pickerdateEditOs></mat-datepicker>
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" class="full-width"
+                                                style="width: 160px;">
+                                                <mat-label>Date Notif</mat-label>
+                                                <input matInput [matDatepicker]="pickerdateNotifOs"
+                                                    formControlName="dateNotifOs">
+                                                <mat-datepicker-toggle matIconSuffix
+                                                    [for]="pickerdateNotifOs"></mat-datepicker-toggle>
+                                                <mat-datepicker #pickerdateNotifOs></mat-datepicker>
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" style="width: 200px;">
+                                                <mat-label>Désignation</mat-label>
+                                                <input matInput formControlName="designation" type="text" />
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" style="width: 150px;">
+                                                <mat-label>Code OS</mat-label>
+                                                <input matInput formControlName="codeOrd" type="text" />
+                                            </mat-form-field>
+                                        </td>
+                                        <td>
+                                            <mat-form-field appearance="outline" style="width: 120px;">
+                                              <mat-label>Durée</mat-label>
+                                              <input matInput formControlName="dureeOs" type="number"  />
+                                            </mat-form-field>
+                                          </td>
+                                        <td>
+                                            <button mat-raised-button color="warn"
+                                                style="width: 0px; margin-block: 10px;" type="button" 
+                                                (click)="openDeleteConfirmDialogOrdreService(i)">
+                                                <mat-icon style="margin-left: 10px;">delete</mat-icon>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <div *ngIf="ordreservices.errors?.['auMoinsUnOrdreService']"
+                                        class="alert alert-danger">
+                                        Vous devez créer au moins un ordre service dans cette Etape pour que le button
+                                        Soumettre Ordre-Service soit activé.
+                                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+
+        </mat-tab-group>
+
+    </form>
+</mat-dialog-content>
+<br />
+<br />
+<mat-dialog-actions>
+    <div class="button-container">
+        <button mat-raised-button (click)="onNoClick()">Fermer</button>
+        <button mat-raised-button [disabled]="!ordreservices.valid ||ordreservices.errors?.['auMoinsUnOrdreService'] "
+            (click)="submitOrdreService()" 
+            color="primary" style="width: 445px;">Soumettre Ordre Service
+        </button>
+    </div>
+</mat-dialog-actions>

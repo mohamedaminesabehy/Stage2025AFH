@@ -1,0 +1,31 @@
+/* Ajoutez une bordure et une ombre autour du conteneur du dialog */
+.mat-dialog-container {
+    border: 2px solid #db1818; /* Changer la couleur de bordure comme désiré */
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Centre les boutons dans le dialogue */
+  .dialog-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  /* Spécifie une marge entre les boutons */
+  .dialog-actions button {
+    margin: 0 8px;
+  }
+  
+  /* Enlève l'ombre portée du bouton */
+  .dialog-actions button.mat-button {
+    box-shadow: none !important;
+  }
+  
+  /* Style le titre du dialogue (optionnel) */
+  h1.mat-dialog-title {
+    text-align: center;
+    font-size: 20px;
+  }
+  

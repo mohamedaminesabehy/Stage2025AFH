@@ -1,0 +1,808 @@
+<div class="dashboard">
+  <!-- Header amélioré avec métriques clés -->
+  <div class="dashboard-header">
+    <div class="title-section">
+      <h2>Tableau de Bord Analytique</h2>
+      <span class="subtitle">Statistiques avancées et analyses des marchés publics</span>
+    </div>
+    <div class="actions-section">
+      <div class="system-status" [ngClass]="systemStatus.apiStatus">
+        <span class="status-indicator"></span>
+        <span class="status-text">{{ systemStatus.apiStatus | titlecase }}</span>
+        <span class="last-update">{{ systemStatus.lastUpdate | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <button class="refresh-btn" (click)="refreshData()">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Métriques clés en haut -->
+  <div class="metrics-overview">
+    <div class="metric-card">
+      <div class="metric-icon">
+        <i class="fas fa-handshake"></i>
+      </div>
+      <div class="metric-content">
+        <div class="metric-value">{{ marchesCount }}</div>
+        <div class="metric-label">Marchés Actifs</div>
+        <div class="metric-trend positive">
+          <i class="fas fa-arrow-up"></i> +12.5%
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <i class="fas fa-building"></i>
+      </div>
+      <div class="metric-content">
+        <div class="metric-value">{{ fournisseursCount }}</div>
+        <div class="metric-label">Fournisseurs</div>
+        <div class="metric-trend positive">
+          <i class="fas fa-arrow-up"></i> +8.3%
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <i class="fas fa-boxes"></i>
+      </div>
+      <div class="metric-content">
+        <div class="metric-value">{{ articlesCount }}</div>
+        <div class="metric-label">Articles</div>
+        <div class="metric-trend neutral">
+          <i class="fas fa-minus"></i> 0%
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <i class="fas fa-euro-sign"></i>
+      </div>
+      <div class="metric-content">
+        <div class="metric-value">2.5K</div>
+        <div class="metric-label">Valeur Totale (TND)</div>
+        <div class="metric-trend positive">
+          <i class="fas fa-arrow-up"></i> +15.7%
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statistics-container">
+    <!-- Contrôles améliorés -->
+    <div class="controls-section">
+      <div class="period-selector">
+        <h3>Période d'analyse</h3>
+        <div class="period-buttons">
+          <button
+            class="period-btn"
+            [class.active]="selectedPeriod === '3months'"
+            (click)="selectedPeriod = '3months'; updateCharts()">
+            3 Mois
+          </button>
+          <button
+            class="period-btn"
+            [class.active]="selectedPeriod === '6months'"
+            (click)="selectedPeriod = '6months'; updateCharts()">
+            6 Mois
+          </button>
+          <button
+            class="period-btn"
+            [class.active]="selectedPeriod === '12months'"
+            (click)="selectedPeriod = '12months'; updateCharts()">
+            12 Mois
+          </button>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <h3>Actions</h3>
+        <div class="action-buttons">
+          <button class="action-btn refresh" (click)="refreshAllData()">
+            <i class="fas fa-sync-alt"></i>
+            <span>Actualiser</span>
+          </button>
+          <button class="action-btn pdf" (click)="exportToPDF()">
+            <i class="fas fa-file-pdf"></i>
+            <span>Export PDF</span>
+          </button>
+          <button class="action-btn excel" (click)="exportToExcel()">
+            <i class="fas fa-file-excel"></i>
+            <span>Export Excel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== NOUVEAUX ONGLETS POUR STATISTIQUES COMPLÈTES ========== -->
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-btn"
+                [class.active]="activeTab === 'articles'"
+                (click)="setActiveTab('articles')">
+          <i class="fas fa-boxes"></i>
+          Statistiques Articles
+        </button>
+        <button class="tab-btn"
+                [class.active]="activeTab === 'fournisseurs'"
+                (click)="setActiveTab('fournisseurs')">
+          <i class="fas fa-building"></i>
+          Statistiques Fournisseurs
+        </button>
+        <button class="tab-btn"
+                [class.active]="activeTab === 'synthese'"
+                (click)="setActiveTab('synthese')">
+          <i class="fas fa-chart-pie"></i>
+          Synthèse Globale
+        </button>
+      </div>
+    </div>
+
+    <!-- Section principale des graphiques -->
+    <div class="main-charts-section">
+      <!-- Graphique principal - Évolution des marchés -->
+      <div class="primary-chart-container">
+        <div class="chart-header">
+          <div class="chart-title">
+            <h3>Évolution des Marchés</h3>
+            <span class="chart-subtitle">Tendance sur les derniers mois</span>
+          </div>
+          <div class="chart-controls">
+            <div class="chart-type-selector">
+              <button class="chart-type-btn active">
+                <i class="fas fa-chart-line"></i>
+              </button>
+              <button class="chart-type-btn">
+                <i class="fas fa-chart-bar"></i>
+              </button>
+              <button class="chart-type-btn">
+                <i class="fas fa-chart-area"></i>
+              </button>
+            </div>
+            <div class="chart-metrics">
+              <div class="metric-item">
+                <span class="metric-label">Total</span>
+                <span class="metric-value">45</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Moyenne</span>
+                <span class="metric-value">3.8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-content">
+          <canvas baseChart
+            [data]="marcheEvolutionChart"
+            [options]="lineChartOptions"
+            type="line">
+          </canvas>
+        </div>
+        <div class="chart-insights">
+          <div class="insight-item">
+            <i class="fas fa-trending-up"></i>
+            <span>Croissance de 15% ce mois</span>
+          </div>
+          <div class="insight-item">
+            <i class="fas fa-calendar-check"></i>
+            <span>{{ marchesCount }} marchés en cours</span>
+          </div>
+          <div class="insight-item">
+            <i class="fas fa-clock"></i>
+            <span>Délai moyen: 12 jours</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques secondaires en grille -->
+    <div class="secondary-charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4>Répartition par Fournisseur</h4>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn">
+              <i class="fas fa-expand-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="chart-card-content">
+          <canvas baseChart
+            [data]="fournisseurRepartitionChart"
+            [options]="pieChartOptions"
+            type="pie">
+          </canvas>
+        </div>
+        <div class="chart-card-footer">
+          <div class="chart-legend-custom">
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #667eea"></span>
+              <span class="legend-label">STE BOUZGUENDA</span>
+              <span class="legend-value">35%</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #764ba2"></span>
+              <span class="legend-label">MEDIBAT</span>
+              <span class="legend-value">25%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4>Performance par Région</h4>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn">
+              <i class="fas fa-expand-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="chart-card-content">
+          <canvas baseChart
+            [data]="regionRepartitionChart"
+            [options]="barChartOptions"
+            type="bar">
+          </canvas>
+        </div>
+        <div class="chart-card-footer">
+          <div class="region-stats">
+            <div class="stat-item">
+              <span class="stat-label">Région leader</span>
+              <span class="stat-value">Tunis</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Croissance</span>
+              <span class="stat-value">+23%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h4>Articles par Secteur</h4>
+          <div class="chart-card-actions">
+            <button class="chart-action-btn">
+              <i class="fas fa-expand-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="chart-card-content">
+          <canvas baseChart
+            [data]="articleRepartitionChart"
+            [options]="pieChartOptions"
+            type="pie">
+          </canvas>
+        </div>
+        <div class="chart-card-footer">
+          <div class="sector-distribution">
+            <div class="sector-item">
+              <span class="sector-name">GAZ</span>
+              <div class="sector-bar">
+                <div class="sector-fill" style="width: 45%"></div>
+              </div>
+              <span class="sector-percentage">45%</span>
+            </div>
+            <div class="sector-item">
+              <span class="sector-name">EAU</span>
+              <div class="sector-bar">
+                <div class="sector-fill" style="width: 30%"></div>
+              </div>
+              <span class="sector-percentage">30%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tableaux de données améliorés -->
+    <div class="data-tables-section">
+
+
+      <!-- Filtres pour les fournisseurs -->
+      <div class="filters-section">
+        <h3>Filtres Fournisseurs</h3>
+        <div class="filters-grid">
+          <div class="filter-item">
+            <label for="filterName">Nom du fournisseur</label>
+            <input
+              type="text"
+              id="filterName"
+              [(ngModel)]="filterName"
+              (ngModelChange)="applyFilters()"
+              placeholder="Rechercher par nom...">
+          </div>
+
+          <div class="filter-item">
+            <label for="filterMinAmount">Montant minimum (TND)</label>
+            <input
+              type="number"
+              id="filterMinAmount"
+              [(ngModel)]="filterMinAmount"
+              (ngModelChange)="applyFilters()"
+              placeholder="0">
+          </div>
+
+          <div class="filter-item">
+            <label for="filterHasPenalites">
+              <input
+                type="checkbox"
+                id="filterHasPenalites"
+                [(ngModel)]="filterHasPenalites"
+                (ngModelChange)="applyFilters()">
+              Avec garanties uniquement
+            </label>
+          </div>
+
+          <div class="filter-item">
+            <button class="btn btn-secondary" (click)="filterName=''; filterMinAmount=0; filterHasPenalites=false; applyFilters()">
+              <i class="fas fa-times"></i> Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des marchés -->
+      <div class="data-table-container">
+        <div class="table-header">
+          <div class="table-title">
+            <h3>Marchés avec leurs Fournisseurs</h3>
+            <span class="table-subtitle">Détails des marchés, fournisseurs et banques</span>
+          </div>
+        </div>
+
+        <div class="enhanced-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Numéro Marché</th>
+                <th>Désignation</th>
+                <th>Fournisseur</th>
+                <th>Montant (TND)</th>
+                <th>Date</th>
+                <th>Banque</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let marche of filteredMarchesData" class="table-row">
+                <td class="marche-cell">
+                  <div class="marche-info">
+                    <span class="marche-numero">{{ marche.numMarche }}</span>
+                  </div>
+                </td>
+                <td class="marche-designation-cell">
+                  <div class="marche-designation">
+                    {{ marche.designation }}
+                  </div>
+                </td>
+                <td class="fournisseur-cell">
+                  <div class="fournisseur-info">
+                    {{ marche.fournisseur }}
+                    <span class="fournisseur-numero">{{ marche.numFourn }}</span>
+                  </div>
+                </td>
+                <td class="montant-cell">
+                  <div class="montant-value">
+                    {{ marche.montant | number:'1.0-0' }}
+                  </div>
+                </td>
+                <td class="date-cell">
+                  <div class="date-value">
+                    {{ marche.date | date:'dd/MM/yyyy' }}
+                  </div>
+                </td>
+                <td class="banque-cell">
+                  <div class="banque-value">
+                    {{ marche.banque }}
+                  </div>
+                </td>
+                <td class="actions-cell">
+                  <button class="btn btn-primary btn-sm" (click)="showMarcheDetails(marche)">
+                    <i class="fas fa-eye"></i> Détails
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button class="btn btn-secondary" (click)="loadPreviousPage()" [disabled]="currentPage <= 0">
+          <i class="fas fa-chevron-left"></i> Précédent
+        </button>
+        <span class="pagination-info">
+          {{ getCurrentPageStart() }} – {{ getCurrentPageEnd() }} de {{ totalMarches }}
+        </span>
+        <button class="btn btn-secondary" (click)="loadNextPage()" [disabled]="currentPage >= totalPages - 1">
+          Suivant <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Tableau des articles -->
+      <div class="data-table-container">
+        <div class="table-header">
+          <div class="table-title">
+            <h3>Articles les Plus Demandés</h3>
+            <span class="table-subtitle">Analyse par secteur et volume</span>
+          </div>
+        </div>
+
+        <div class="enhanced-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Secteur</th>
+                <th>Quantité</th>
+                <th>Montant</th>
+                <th>Tendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let article of statistiquesArticles.topArticles" class="table-row">
+                <td class="article-cell">
+                  <div class="article-info">
+                    <span class="article-name">{{ article.designation }}</span>
+                  </div>
+                </td>
+                <td class="secteur-cell">
+                  <div class="secteur-badge" [ngClass]="getSecteurClass(article.secteur || '')">
+                    {{ article.secteur || '—' }}
+                  </div>
+                </td>
+                <td class="quantite-cell">
+                  <div class="quantite-value">
+                    {{ article.utilisations | number }}
+                  </div>
+                </td>
+                <td class="montant-cell">
+                  <div class="montant-value">
+                    {{ article.montant || 0 | number:'1.0-0' }}
+                    <span class="currency">TND</span>
+                  </div>
+                </td>
+                <td class="tendance-cell">
+                  <div class="tendance-indicator positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Détails Marché -->
+  <div *ngIf="showDetails && selectedMarche" class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          <i class="fas fa-handshake"></i>
+          Détails du Marché - {{ selectedMarche.designation }}
+        </h3>
+        <button class="close-btn" (click)="closeDetails()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Informations générales -->
+        <div class="info-section">
+          <h4><i class="fas fa-info-circle"></i> Informations Générales</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Numéro Marché</label>
+              <span>{{ selectedMarche.numMarche }}</span>
+            </div>
+            <div class="info-item">
+              <label>Désignation</label>
+              <span>{{ selectedMarche.designation }}</span>
+            </div>
+            <div class="info-item">
+              <label>Montant</label>
+              <span>{{ selectedMarche.montant | number:'1.0-0' }} TND</span>
+            </div>
+            <div class="info-item">
+              <label>Date</label>
+              <span>{{ selectedMarche.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations Fournisseur -->
+        <div class="info-section">
+          <h4><i class="fas fa-building"></i> Fournisseur</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nom</label>
+              <span>{{ selectedMarche.fournisseur }}</span>
+            </div>
+            <div class="info-item">
+              <label>Numéro Fournisseur</label>
+              <span>{{ selectedMarche.numFourn }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations Banque -->
+        <div class="info-section">
+          <h4><i class="fas fa-university"></i> Banque</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nom</label>
+              <span>{{ selectedMarche.banque }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDetails()">
+          <i class="fas fa-times"></i>
+          Fermer
+        </button>
+        <button class="btn btn-primary">
+          <i class="fas fa-edit"></i>
+          Modifier
+        </button>
+        <button class="btn btn-info">
+          <i class="fas fa-download"></i>
+          Exporter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CONTENU DES ONGLETS STATISTIQUES ========== -->
+
+  <!-- Onglet Articles -->
+  <div class="tab-content" *ngIf="activeTab === 'articles'">
+    <div class="statistics-grid">
+      <!-- Métriques Articles -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3><i class="fas fa-boxes"></i> Métriques Articles</h3>
+        </div>
+        <div class="stat-content">
+          <div class="metric-row">
+            <span class="metric-label">Total Articles:</span>
+            <span class="metric-value">{{metriquesGlobales.totalArticles}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Articles Actifs:</span>
+            <span class="metric-value">{{statistiquesArticles.articlesStatut.actif}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Articles Inactifs:</span>
+            <span class="metric-value">{{statistiquesArticles.articlesStatut.inactif}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Articles Obsolètes:</span>
+            <span class="metric-value">{{statistiquesArticles.articlesStatut.obsolete}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Sans Mouvement:</span>
+            <span class="metric-value">{{statistiquesArticles.articlesSansMouvement}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphique Articles par Secteur -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-bar"></i> Articles par Secteur Économique</h3>
+        </div>
+        <div class="chart-content">
+          <canvas baseChart
+            [data]="articlesSecteurChart"
+            [type]="'bar'"
+            [options]="{responsive: true, maintainAspectRatio: false}">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Tableau Articles par Famille -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3><i class="fas fa-table"></i> Répartition par Famille</h3>
+        </div>
+        <div class="table-content">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Famille</th>
+                <th>Nombre</th>
+                <th>Pourcentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let famille of statistiquesArticles.articlesByFamille">
+                <td>{{famille.famille}}</td>
+                <td>{{famille.nombre}}</td>
+                <td>{{formatPercentage(famille.pourcentage)}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Distribution des Prix -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-line"></i> Distribution des Prix</h3>
+        </div>
+        <div class="chart-content">
+          <canvas baseChart
+            [data]="distributionPrixChart"
+            [type]="'bar'"
+            [options]="{responsive: true, maintainAspectRatio: false}">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Top Articles -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3><i class="fas fa-trophy"></i> Top 10 Articles les Plus Utilisés</h3>
+        </div>
+        <div class="table-content">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rang</th>
+                <th>Désignation</th>
+                <th>Utilisations</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let article of statistiquesArticles.topArticles">
+                <td>{{article.rang}}</td>
+                <td>{{article.designation}}</td>
+                <td>{{article.utilisations}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Articles Extrêmes -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3><i class="fas fa-balance-scale"></i> Articles Extrêmes</h3>
+        </div>
+        <div class="stat-content">
+          <div *ngFor="let article of statistiquesArticles.articlesExtremes" class="extreme-item">
+            <div class="extreme-type" [ngClass]="article.type">
+              {{article.type === 'plus_cher' ? 'Plus Cher' : 'Moins Cher'}}
+            </div>
+            <div class="extreme-designation">{{article.designation}}</div>
+            <div class="extreme-prix">{{formatCurrency(article.prix)}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Fournisseurs -->
+  <div class="tab-content" *ngIf="activeTab === 'fournisseurs'">
+    <div class="statistics-grid">
+      <!-- Métriques Fournisseurs -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <h3><i class="fas fa-building"></i> Métriques Fournisseurs</h3>
+        </div>
+        <div class="stat-content">
+          <div class="metric-row">
+            <span class="metric-label">Total Fournisseurs:</span>
+            <span class="metric-value">{{metriquesGlobales.totalFournisseurs}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Actifs:</span>
+            <span class="metric-value">{{statistiquesFournisseurs.fournisseursStatut.actif}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Suspendus:</span>
+            <span class="metric-value">{{statistiquesFournisseurs.fournisseursStatut.suspendu}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Blacklistés:</span>
+            <span class="metric-value">{{statistiquesFournisseurs.fournisseursStatut.blackliste}}</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Avec Pénalités:</span>
+            <span class="metric-value">{{statistiquesFournisseurs.fournisseursPenalites.avecPenalites}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphique Fournisseurs par Région -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-map-marker-alt"></i> Fournisseurs par Région</h3>
+        </div>
+        <div class="chart-content">
+          <canvas baseChart
+            [data]="fournisseursRegionChart"
+            [type]="'bar'"
+            [options]="{responsive: true, maintainAspectRatio: false}">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Tableau Fournisseurs par Secteur -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3><i class="fas fa-industry"></i> Répartition par Secteur d'Activité</h3>
+        </div>
+        <div class="table-content">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Secteur</th>
+                <th>Nombre</th>
+                <th>Pourcentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let secteur of statistiquesFournisseurs.fournisseursBySecteur">
+                <td>{{secteur.secteur}}</td>
+                <td>{{secteur.nombre}}</td>
+                <td>{{formatPercentage(secteur.pourcentage)}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  <!-- Sous-section: Fournisseurs avec leurs Marchés -->
+  <div class="data-table-container" *ngIf="activeTab === 'fournisseurs'">
+    <div class="table-header">
+      <div class="table-title">
+        <h3>Fournisseurs avec leurs Marchés</h3>
+        <span class="table-subtitle">Liste des fournisseurs ayant au moins un marché</span>
+      </div>
+      <div>
+        <button class="btn btn-secondary" (click)="loadFournisseursAvecMarches()">
+          <i class="fas fa-sync-alt"></i> Recharger
+        </button>
+      </div>
+    </div>
+
+    <div class="enhanced-table">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fournisseur</th>
+            <th>Numéro</th>
+            <th>Nombre de Marchés</th>
+            <th>Montant Total (TND)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of fournisseursAvecMarches">
+            <td>{{ f.designation }}</td>
+            <td>{{ f.numFourn }}</td>
+            <td>{{ f.nombreMarches }}</td>
+            <td>{{ f.montantTotal | number:'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+
+</div>

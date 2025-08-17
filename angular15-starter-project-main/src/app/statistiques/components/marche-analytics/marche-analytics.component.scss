@@ -1,0 +1,300 @@
+.marche-analytics {
+  padding: 24px;
+  
+  // Métriques principales
+  .metrics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+    
+    .metric-card {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+      
+      &.primary {
+        border-left: 4px solid #1976d2;
+      }
+      
+      &.success {
+        border-left: 4px solid #4caf50;
+      }
+      
+      &.warning {
+        border-left: 4px solid #ff9800;
+      }
+      
+      &.accent {
+        border-left: 4px solid #ff4081;
+      }
+      
+      mat-card-content {
+        padding: 24px !important;
+        
+        .metric-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+          
+          mat-icon {
+            color: #1976d2;
+            font-size: 1.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+          }
+          
+          .metric-title {
+            font-weight: 500;
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+        }
+        
+        .metric-value {
+          font-size: 2.5rem;
+          font-weight: 300;
+          color: #333;
+          line-height: 1;
+          margin-bottom: 8px;
+        }
+        
+        .metric-subtitle {
+          color: #888;
+          font-size: 0.9rem;
+          
+          &.success {
+            color: #4caf50;
+          }
+          
+          &.danger {
+            color: #f44336;
+          }
+          
+          &.primary {
+            color: #1976d2;
+          }
+          
+          mat-icon {
+            font-size: 1rem;
+            width: 1rem;
+            height: 1rem;
+            vertical-align: middle;
+          }
+        }
+      }
+    }
+  }
+  
+  // Section graphiques
+  .charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+    
+    .chart-card {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+      
+      mat-card-header {
+        mat-card-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 1.2rem;
+          
+          mat-icon {
+            color: #1976d2;
+          }
+        }
+      }
+      
+      .chart-container {
+        height: 300px;
+        position: relative;
+      }
+    }
+  }
+  
+  // Section détails
+  .details-section {
+    margin-bottom: 32px;
+    
+    .details-card {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      
+      .types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        
+        .type-card {
+          background: #f8f9fa;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #e9ecef;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+          }
+          
+          .type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            
+            .type-name {
+              margin: 0;
+              font-size: 1.1rem;
+              font-weight: 500;
+              color: #333;
+            }
+            
+            .type-chip {
+              font-size: 0.8rem;
+            }
+          }
+          
+          .type-metrics {
+            margin-bottom: 16px;
+            
+            .metric-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+              
+              .metric-label {
+                font-size: 0.9rem;
+                color: #666;
+              }
+              
+              .metric-value {
+                font-weight: 500;
+                color: #333;
+              }
+            }
+          }
+          
+          .type-progress {
+            mat-progress-bar {
+              height: 6px;
+              border-radius: 3px;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Section performance
+  .performance-section {
+    .performance-card {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      
+      .indicators-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        
+        .indicator-item {
+          background: #f8f9fa;
+          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #e9ecef;
+          
+          .indicator-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            
+            mat-icon {
+              color: #1976d2;
+              font-size: 1.3rem;
+              width: 1.3rem;
+              height: 1.3rem;
+            }
+            
+            .indicator-name {
+              font-weight: 500;
+              color: #333;
+              font-size: 1rem;
+            }
+          }
+          
+          .indicator-value {
+            .value {
+              display: block;
+              font-size: 1.5rem;
+              font-weight: 500;
+              margin-bottom: 8px;
+              
+              &.success {
+                color: #4caf50;
+              }
+              
+              &.danger {
+                color: #f44336;
+              }
+              
+              &.primary {
+                color: #1976d2;
+              }
+            }
+            
+            mat-progress-bar {
+              height: 8px;
+              border-radius: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .marche-analytics {
+    padding: 16px;
+    
+    .metrics-summary {
+      grid-template-columns: 1fr;
+    }
+    
+    .charts-section {
+      grid-template-columns: 1fr;
+    }
+    
+    .details-section {
+      .types-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .performance-section {
+      .indicators-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

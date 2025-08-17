@@ -1,0 +1,264 @@
+<div class="marche-analytics" *ngIf="data">
+  
+  <!-- Métriques principales -->
+  <div class="metrics-summary">
+    <mat-card class="metric-card primary">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon>assignment</mat-icon>
+          <span class="metric-title">Total Marchés</span>
+        </div>
+        <div class="metric-value">{{formatNumber(data.total)}}</div>
+        <div class="metric-subtitle">{{data.enCours}} en cours</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card success">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon>monetization_on</mat-icon>
+          <span class="metric-title">Montant Total</span>
+        </div>
+        <div class="metric-value">{{formatCurrency(data.montantTotal)}}</div>
+        <div class="metric-subtitle">{{formatCurrency(data.montantMoyen)}} en moyenne</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card warning">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon>schedule</mat-icon>
+          <span class="metric-title">Délais Moyens</span>
+        </div>
+        <div class="metric-value">{{data.delaisMoyens | number:'1.0-0'}}</div>
+        <div class="metric-subtitle">jours</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card accent">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon>check_circle</mat-icon>
+          <span class="metric-title">Taux de Réussite</span>
+        </div>
+        <div class="metric-value">{{formatPercentage(tauxReussite)}}</div>
+        <div class="metric-subtitle">
+          <span [ngClass]="getTrendColor(croissanceMensuelle)">
+            <mat-icon>{{getTrendIcon(croissanceMensuelle)}}</mat-icon>
+            {{formatPercentage(croissanceMensuelle)}}
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Graphiques principaux -->
+  <div class="charts-section">
+    
+    <!-- Évolution des montants -->
+    <mat-card class="chart-card full-width">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>timeline</mat-icon>
+          Évolution des Montants des Marchés
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas baseChart
+                  [data]="chartData.evolution"
+                  [options]="chartOptions"
+                  type="line">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Répartition par type -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>pie_chart</mat-icon>
+          Répartition par Type
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas baseChart
+                  [data]="chartData.repartitionType"
+                  [options]="chartOptions"
+                  type="doughnut">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Montants par type -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>bar_chart</mat-icon>
+          Montants par Type
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas baseChart
+                  [data]="chartData.montantsType"
+                  [options]="chartOptions"
+                  type="bar">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Performance radar -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>radar</mat-icon>
+          Performance Globale
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas baseChart
+                  [data]="chartData.performance"
+                  [options]="chartOptions"
+                  type="radar">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+
+  <!-- Tableau détaillé par type -->
+  <div class="details-section">
+    <mat-card class="details-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>table_chart</mat-icon>
+          Détails par Type de Marché
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="types-grid">
+          <div class="type-card" *ngFor="let type of data.repartitionParType">
+            <div class="type-header">
+              <h3 class="type-name">{{type.type}}</h3>
+              <mat-chip class="type-chip" [color]="getStatusColor(type.type)">
+                {{type.nombre}} marchés
+              </mat-chip>
+            </div>
+            
+            <div class="type-metrics">
+              <div class="metric-row">
+                <span class="metric-label">Pourcentage:</span>
+                <span class="metric-value">{{formatPercentage(type.pourcentage)}}</span>
+              </div>
+              
+              <div class="metric-row">
+                <span class="metric-label">Montant Total:</span>
+                <span class="metric-value">{{formatCurrency(type.montantTotal)}}</span>
+              </div>
+              
+              <div class="metric-row">
+                <span class="metric-label">Montant Moyen:</span>
+                <span class="metric-value">{{formatCurrency(montantMoyenParType[type.type])}}</span>
+              </div>
+            </div>
+            
+            <div class="type-progress">
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="type.pourcentage"
+                color="primary">
+              </mat-progress-bar>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Indicateurs de performance -->
+  <div class="performance-section">
+    <mat-card class="performance-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>dashboard</mat-icon>
+          Indicateurs de Performance
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="indicators-grid">
+          
+          <div class="indicator-item">
+            <div class="indicator-header">
+              <mat-icon>speed</mat-icon>
+              <span class="indicator-name">Efficacité</span>
+            </div>
+            <div class="indicator-value">
+              <span class="value">{{formatPercentage(tauxReussite)}}</span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="tauxReussite"
+                color="primary">
+              </mat-progress-bar>
+            </div>
+          </div>
+
+          <div class="indicator-item">
+            <div class="indicator-header">
+              <mat-icon>schedule</mat-icon>
+              <span class="indicator-name">Respect des Délais</span>
+            </div>
+            <div class="indicator-value">
+              <span class="value">{{formatPercentage(Math.max(0, 100 - data.delaisMoyens))}}</span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="Math.max(0, 100 - data.delaisMoyens)"
+                color="accent">
+              </mat-progress-bar>
+            </div>
+          </div>
+
+          <div class="indicator-item">
+            <div class="indicator-header">
+              <mat-icon>trending_up</mat-icon>
+              <span class="indicator-name">Croissance</span>
+            </div>
+            <div class="indicator-value">
+              <span class="value" [ngClass]="getTrendColor(croissanceMensuelle)">
+                {{formatPercentage(Math.abs(croissanceMensuelle))}}
+              </span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="Math.min(100, Math.abs(croissanceMensuelle))"
+                [color]="getTrendColor(croissanceMensuelle)">
+              </mat-progress-bar>
+            </div>
+          </div>
+
+          <div class="indicator-item">
+            <div class="indicator-header">
+              <mat-icon>account_balance_wallet</mat-icon>
+              <span class="indicator-name">Rentabilité</span>
+            </div>
+            <div class="indicator-value">
+              <span class="value">85%</span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="85"
+                color="warn">
+              </mat-progress-bar>
+            </div>
+          </div>
+
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

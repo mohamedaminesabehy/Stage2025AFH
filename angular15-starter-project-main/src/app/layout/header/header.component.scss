@@ -1,0 +1,69 @@
+.example-spacer {
+  flex: 1 1 auto;
+}
+
+
+
+.custom-toolbar{
+  background-color: #322653;
+
+}
+.mat-toolbar{
+  color: #f0f0f0 !important;
+}
+
+.mat-icon-button {
+  color: white !important;
+  background-color: transparent;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+  }
+}
+
+
+.neumorphic-button {
+  color: white;
+  border-radius: 10px; /* Adjust the border-radius for a softer look */
+  transition: transform 0.3s ease-in-out;
+
+  &:hover {
+    // Scale the button slightly on hover
+    transform: scale(1.05);
+  }}
+
+
+  .neumorphic-button {
+    color: white !important;
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3),
+                -4px -4px 10px rgba(255, 255, 255, 0.05);
+  
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.35),
+                  -6px -6px 12px rgba(255, 255, 255, 0.06);
+    }
+  }
+  
+
+.custom-toolbar button:not(:last-child) {
+  margin-right: 10px;
+}
+
+.notification-button {
+  padding-left: 30px;
+}
+
+
+
+
+
+
+

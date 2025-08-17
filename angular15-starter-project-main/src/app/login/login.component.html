@@ -1,0 +1,73 @@
+<div class="background">
+  <div class="col-md-12">
+    <div class="card card-container">
+      <img
+        id="profile-img"
+        src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
+        class="profile-img-card"
+      />
+      <ng-container *ngIf="!isLoggedIn">
+        <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()"> 
+          
+          <div class="form-group">
+            <label for="matricule">Matricule</label>
+            <input
+              type="number"
+              class="form-control"
+              id="matricule"
+              formControlName="matricule" 
+              placeholder="Entrez votre matricule"
+              [ngClass]="{ 'is-invalid': loginForm.get('matricule').touched && loginForm.get('matricule').invalid }"
+            />
+            <div *ngIf="loginForm.get('matricule').touched && loginForm.get('matricule').invalid" class="invalid-feedback">
+              <div *ngIf="loginForm.get('matricule').hasError('required')">Matricule est obligatoire</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <div class="input-group">
+              <input
+                [type]="hidePassword ? 'password' : 'text'"
+                class="form-control"
+                id="password"
+                formControlName="password"
+                placeholder="Entrez votre mot de passe"
+                [ngClass]="{ 'is-invalid': loginForm.get('password').touched && loginForm.get('password').invalid && loginForm.get('password').dirty }"
+              />
+              <div class="input-group-append">
+                <button type="button" class="btn" (click)="togglePasswordVisibility()">
+                  <i class="fa" [ngClass]="{'fa-eye-slash': hidePassword, 'fa-eye': !hidePassword}"></i>
+                </button>
+              </div>
+            </div>
+            <div *ngIf="loginForm.get('password').touched && loginForm.get('password').invalid && loginForm.get('password').dirty" class="invalid-feedback">
+              <div *ngIf="loginForm.get('password').hasError('required')">Mot de passe est obligatoire</div>
+              <div *ngIf="loginForm.get('password').hasError('minlength')">Mot de passe doit être composé de 3 caractères minimum</div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-left: 50px; margin-top: 30px;">
+            <div class="row">
+              <div class="col-md-6" style="padding-left: 17px;">
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="loginForm.invalid">S'authentifier</button>
+              </div>
+              <div class="col-md-6" style="padding-left: 9px;">
+                <button type="button" class="btn btn-secondary btn-block" (click)="onRedirect()">S'inscrire</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-block: 14px;width: 400px;height: 24px;">
+            <ng-container *ngIf="isLoginFailed">
+              <div class="alert alert-danger" role="alert">
+                Authentification échouée: {{ errorMessage }}
+              </div>
+            </ng-container>
+          </div>
+
+        </form>
+      </ng-container>
+    </div>
+  </div>
+</div>

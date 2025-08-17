@@ -1,0 +1,131 @@
+<mat-dialog-content>
+    <mat-toolbar color="primary">
+        <span>Gestion Décompte</span>
+    </mat-toolbar>
+    <div class="overlay" *ngIf="(_spinnerService.spinnerCounter$ | async) > 0">
+        <mat-spinner diameter="50" strokeWidth="5" color="primary"></mat-spinner>
+    </div>
+
+    <div class="error-message" *ngIf="loadingError">
+        {{ loadingError }}
+    </div>
+
+    <form [formGroup]="form">
+        <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedIndexChange)="selectedIndexChange($event)" [selectedIndex]="selectedIndex" #matGroup>
+            <mat-tab label="Rubrique Décompte">
+                <!-- Marche Card -->
+                <mat-card appearance="outlined" class="modern-card">
+                    <mat-card-header>
+                        <mat-card-title>Marche</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <mat-form-field appearance="fill" class="input-item">
+                                    <input matInput [value]="selectedMarche ? selectedMarche.id + ' | ' + selectedMarche.designation : ''" placeholder="Marché" readonly (click)="openMarchesSelectionDialog()">
+                                </mat-form-field>
+
+                                <button mat-fab (click)="resetMarcheSelection()" [disabled]="!form.value.id">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+
+                            <mat-form-field appearance="fill">
+                                <mat-label>Montant Marché</mat-label>
+                                <input matInput [value]="formatNombre(form.get('mntMarche')?.value)" disabled>
+                              </mat-form-field>
+                              
+                              <mat-form-field appearance="fill">
+                                <mat-label>Montant Total après avenants</mat-label>
+                                <input matInput [value]="formatNombre(form.get('mntMrcApresAvenant')?.value)" disabled>
+                              </mat-form-field>
+                              
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Fournisseur Card -->
+                <mat-card appearance="outlined" class="modern-card">
+                    <mat-card-header>
+                        <mat-card-title>Fournisseur</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="form-group">
+                            <mat-form-field appearance="fill">
+                                <mat-label>Numéro Fournisseur</mat-label>
+                                <input matInput formControlName="numFourn" readonly>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="fill">
+                                <mat-label>Désignation Fournisseur</mat-label>
+                                <input matInput formControlName="designationFourn" readonly>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="fill">
+                                <mat-label>Désignation Française Fournisseur</mat-label>
+                                <input matInput formControlName="designationFrFourn" readonly>
+                            </mat-form-field>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Etapes Card -->
+                <mat-card appearance="outlined" class="modern-card">
+                    <mat-card-header>
+                        <mat-card-title>Etapes</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <mat-form-field appearance="fill" class="input-item">
+                                    <mat-label>Etape</mat-label>
+                                    <mat-select class="large-select" formControlName="etape" (selectionChange)="onSelectEtapes($event.value)">
+                                        <mat-option *ngIf="!etapes || etapes.length === 0" disabled>
+                                            Absence des étapes pour ce marché
+                                        </mat-option>
+                                        <mat-option *ngFor="let etape of etapes" [value]="etape.id.numEtape">
+                                            <span class="puce-circulaire"></span>
+                                            <span class="idMarche">Etape {{ etape.id.numEtape }}</span>
+                                            <span class="separator"> | </span>
+                                            <span class="designationMarche">{{ etape.designation }}</span>
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+
+                                <button mat-fab (click)="resetEtapeSelection()" [disabled]="!form.value.etape">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Décompte Card -->
+                <mat-card appearance="outlined" class="modern-card">
+                    <mat-card-header>
+                        <mat-card-title [matTooltip]="tooltipText" matTooltipPosition="right" matTooltipClass="custom-tooltip">Décompte</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="form-group">
+                            <mat-radio-group aria-label="Select an option" formControlName="typeDecompte" (selectionChange)="onRadioSelectionChange($event)">
+                                <mat-radio-button [value]="1">ORD / NORMALE</mat-radio-button>
+                                <mat-radio-button [value]="2">N ET DERNIER</mat-radio-button>
+                                <mat-radio-button [value]="3">AVANCE</mat-radio-button>
+                                <mat-radio-button [value]="4">LRG</mat-radio-button>
+<!--                                  <mat-radio-button [value]="5">RBANCAIRE</mat-radio-button> 
+                                 <mat-radio-button [value]="6">FLUCT</mat-radio-button>  -->
+
+                            </mat-radio-group>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+        </mat-tab-group>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    <div class="button-container">
+        <button mat-raised-button [disabled]="!form.valid" color="primary" (click)="openDialogMarcheArticle(form.value)">Pré-soumission/Consultation Decompte</button>
+    </div>
+</mat-dialog-actions>

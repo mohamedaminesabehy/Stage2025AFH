@@ -1,0 +1,167 @@
+<div class="advanced-filters">
+  
+  <!-- Header avec contrôles -->
+  <div class="filters-header">
+    <div class="header-left">
+      <button mat-icon-button (click)="toggleExpanded()" [matTooltip]="isExpanded ? 'Réduire' : 'Développer'">
+        <mat-icon>{{isExpanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+      <h3 class="filters-title">
+        Filtres Avancés
+        <mat-chip class="active-filters-chip" *ngIf="getActiveFiltersCount() > 0">
+          {{getActiveFiltersCount()}}
+        </mat-chip>
+      </h3>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-icon-button (click)="exportFilters()" matTooltip="Exporter filtres">
+        <mat-icon>download</mat-icon>
+      </button>
+      
+      <input #fileInput type="file" accept=".json" (change)="importFilters($event)" style="display: none;">
+      <button mat-icon-button (click)="fileInput.click()" matTooltip="Importer filtres">
+        <mat-icon>upload</mat-icon>
+      </button>
+      
+      <button mat-icon-button (click)="onReset()" matTooltip="Réinitialiser">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire de filtres -->
+  <form [formGroup]="filterForm" class="filters-form" [ngClass]="{'expanded': isExpanded}">
+    
+    <!-- Ligne 1: Période et dates -->
+    <div class="filter-row">
+      <mat-form-field appearance="outline" class="periode-field">
+        <mat-label>Période</mat-label>
+        <mat-select formControlName="periode">
+          <mat-option *ngFor="let option of periodeOptions" [value]="option.value">
+            {{option.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field" *ngIf="hasCustomDateRange()">
+        <mat-label>Date début</mat-label>
+        <input matInput [matDatepicker]="pickerDebut" formControlName="dateDebut">
+        <mat-datepicker-toggle matSuffix [for]="pickerDebut"></mat-datepicker-toggle>
+        <mat-datepicker #pickerDebut></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field" *ngIf="hasCustomDateRange()">
+        <mat-label>Date fin</mat-label>
+        <input matInput [matDatepicker]="pickerFin" formControlName="dateFin">
+        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFin></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Recherche</mat-label>
+        <input matInput formControlName="recherche" placeholder="Rechercher...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Ligne 2: Sélecteurs multiples (visible quand développé) -->
+    <div class="filter-row" *ngIf="isExpanded">
+      <mat-form-field appearance="outline" class="multi-select-field">
+        <mat-label>Types de Marché</mat-label>
+        <mat-select formControlName="typesMarche" multiple>
+          <mat-option *ngFor="let type of typesMarche" [value]="type.value">
+            {{type.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="multi-select-field">
+        <mat-label>Structures</mat-label>
+        <mat-select formControlName="structures" multiple>
+          <mat-option *ngFor="let structure of structures" [value]="structure.value">
+            {{structure.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="multi-select-field">
+        <mat-label>Régions</mat-label>
+        <mat-select formControlName="regions" multiple>
+          <mat-option *ngFor="let region of regions" [value]="region.value">
+            {{region.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Ligne 3: Montants (visible quand développé) -->
+    <div class="filter-row" *ngIf="isExpanded">
+      <mat-form-field appearance="outline" class="amount-field">
+        <mat-label>Montant minimum</mat-label>
+        <input matInput type="number" formControlName="montantMin" placeholder="0">
+        <span matSuffix>TND</span>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="amount-field">
+        <mat-label>Montant maximum</mat-label>
+        <input matInput type="number" formControlName="montantMax" placeholder="∞">
+        <span matSuffix>TND</span>
+      </mat-form-field>
+
+      <!-- Espace pour équilibrer la ligne -->
+      <div class="spacer"></div>
+      <div class="spacer"></div>
+    </div>
+
+    <!-- Résumé des filtres actifs -->
+    <div class="active-filters-summary" *ngIf="getActiveFiltersCount() > 0">
+      <div class="summary-title">Filtres actifs :</div>
+      <div class="summary-chips">
+        <mat-chip *ngIf="filterForm.get('typesMarche')?.value?.length > 0" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({typesMarche: []})">
+          Types: {{filterForm.get('typesMarche')?.value?.length}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+
+        <mat-chip *ngIf="filterForm.get('structures')?.value?.length > 0" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({structures: []})">
+          Structures: {{filterForm.get('structures')?.value?.length}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+
+        <mat-chip *ngIf="filterForm.get('regions')?.value?.length > 0" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({regions: []})">
+          Régions: {{filterForm.get('regions')?.value?.length}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+
+        <mat-chip *ngIf="filterForm.get('montantMin')?.value" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({montantMin: null})">
+          Min: {{filterForm.get('montantMin')?.value | currency:'TND'}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+
+        <mat-chip *ngIf="filterForm.get('montantMax')?.value" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({montantMax: null})">
+          Max: {{filterForm.get('montantMax')?.value | currency:'TND'}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+
+        <mat-chip *ngIf="filterForm.get('recherche')?.value?.trim()" 
+                 class="filter-chip"
+                 (removed)="filterForm.patchValue({recherche: ''})">
+          "{{filterForm.get('recherche')?.value}}"
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+      </div>
+    </div>
+
+  </form>
+
+</div>
