@@ -29,6 +29,9 @@ export class StatistiquesService {
   private exchangeRateApiUrl = 'https://api.exchangerate-api.com/v4/latest';
   private weatherApiUrl = 'https://api.openweathermap.org/data/2.5/weather';
   private weatherApiKey = 'YOUR_WEATHER_API_KEY'; // À remplacer par votre clé API
+  
+  // Noms des mois en français abrégés
+  private monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
   constructor(
     private http: HttpClient,
@@ -81,12 +84,10 @@ export class StatistiquesService {
     return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseurs`, { params }).pipe(
       catchError(error => {
         console.error('Erreur lors de la récupération des fournisseurs détaillés:', error);
+        // Retourner des données vides en cas d'erreur au lieu de données factices
         return of({
-          fournisseurs: [
-            { designation: 'STE BOUZGUENDA', numero: '0003100RAM000', nombreMarches: 3, montantTotal: 850000, penalites: 0 },
-            { designation: 'KBS CONSULTING', numero: '1687260Q', nombreMarches: 1, montantTotal: 120000, penalites: 5000 }
-          ],
-          totalElements: 2
+          fournisseurs: [],
+          totalElements: 0
         });
       })
     );
@@ -122,13 +123,14 @@ export class StatistiquesService {
   /**
    * Récupère les fournisseurs qui ont des marchés
    */
-  getFournisseursAvecMarches(filtres?: { numStruct?: string; page?: number; size?: number; filterName?: string }): Observable<any> {
+  getFournisseursAvecMarches(filtres?: { numStruct?: string; page?: number; size?: number; filterName?: string; filterMinAmount?: number }): Observable<any> {
     let params = new HttpParams();
     if (filtres) {
       if (filtres.numStruct) params = params.set('numStruct', filtres.numStruct);
       if (filtres.page !== undefined) params = params.set('page', filtres.page.toString());
       if (filtres.size !== undefined) params = params.set('size', filtres.size.toString());
       if (filtres.filterName) params = params.set('filterName', filtres.filterName);
+      if (filtres.filterMinAmount !== undefined) params = params.set('filterMinAmount', filtres.filterMinAmount.toString());
     }
 
     return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseurs-avec-marches`, { params }).pipe(
@@ -139,10 +141,78 @@ export class StatistiquesService {
     );
   }
 
+  /**
+   * Récupère les informations complètes d'un fournisseur
+   */
+  getFournisseurComplet(numFourn: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseur-complet/${numFourn}`).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération du fournisseur complet:', error);
+        return of({ success: false, error: 'Erreur lors de la récupération des données' });
+      })
+    );
+  }
 
- /**
-  * Récupère les données détaillées des articles pour le composant statistiques-periodes
-  */
+  /**
+   * Récupère les articles les plus demandés avec filtrage avancé
+   */
+  getArticlesPlusDemandes(filtres?: {
+    numStruct?: string;
+    filterSecteur?: string;
+    filterFamille?: string;
+    filterStatut?: string;
+    filterTvaMin?: number;
+    filterTvaMax?: number;
+  }): Observable<any> {
+    let params = new HttpParams();
+    if (filtres) {
+      if (filtres.numStruct) params = params.set('numStruct', filtres.numStruct);
+      if (filtres.filterSecteur) params = params.set('filterSecteur', filtres.filterSecteur);
+      if (filtres.filterFamille) params = params.set('filterFamille', filtres.filterFamille);
+      if (filtres.filterStatut) params = params.set('filterStatut', filtres.filterStatut);
+      if (filtres.filterTvaMin !== undefined) params = params.set('filterTvaMin', filtres.filterTvaMin.toString());
+      if (filtres.filterTvaMax !== undefined) params = params.set('filterTvaMax', filtres.filterTvaMax.toString());
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/articles-plus-demandes`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération des articles plus demandés:', error);
+        return of({ success: false, error: 'Erreur lors de la récupération des données' });
+      })
+    );
+  }
+
+
+   /**
+   * Récupère les métriques globales depuis le backend
+   */
+  getMetriquesGlobales(numStruct?: string): Observable<any> {
+    let params = new HttpParams();
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/metriques-globales`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération des métriques globales:', error);
+        // Retourner des données vides en cas d'erreur au lieu de données factices
+        return of({
+          marchesActifs: 0,
+          totalFournisseurs: 0,
+          totalArticles: 0,
+          valeurTotale: 0,
+          marchesTendance: 0,
+          fournisseursTendance: 0,
+          articlesTendance: 0,
+          valeurTotaleTendance: 0
+        });
+      })
+    );
+  }
+
+  /**
+   * Récupère les données détaillées des articles pour le composant statistiques-periodes
+   */
   getArticlesDetailles(filtres?: any): Observable<any> {
     let params = new HttpParams();
     if (filtres) {
@@ -184,6 +254,32 @@ export class StatistiquesService {
       })
     );
   }
+  
+  /**
+   * Récupère l'évolution des marchés par dates personnalisées
+   */
+  getMarchesEvolutionParDates(dateDebut: string, dateFin: string, numStruct?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('dateDebut', dateDebut)
+      .set('dateFin', dateFin);
+      
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/marches-evolution-dates`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération de l\'évolution des marchés par dates:', error);
+        // Générer des données de test en fonction de la différence entre les dates
+        const start = new Date(dateDebut);
+        const end = new Date(dateFin);
+        const diffMonths = this.getMonthDifference(start, end) + 1;
+        const labels = this.generateMonthLabels(start, diffMonths);
+        const data = Array.from({length: diffMonths}, () => Math.floor(Math.random() * 10) + 1);
+        return of({ labels, data, dateDebut, dateFin });
+      })
+    );
+  }
 
   /**
    * Récupère la répartition des fournisseurs pour le composant statistiques-periodes
@@ -194,13 +290,41 @@ export class StatistiquesService {
       params = params.set('numStruct', numStruct);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseurs-repartition`, { params }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseurs-repartition-periode`, { params }).pipe(
       catchError(error => {
         console.error('Erreur lors de la récupération de la répartition des fournisseurs:', error);
+        // Retourner des données vides en cas d'erreur au lieu de données factices
+        return of({
+          labels: [],
+          data: [],
+          details: []
+        });
+      })
+    );
+  }
+  
+  /**
+   * Récupère la répartition des fournisseurs par dates personnalisées
+   */
+  getFournisseursRepartitionParDates(limit: number = 5, dateDebut: string, dateFin: string, numStruct?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('dateDebut', dateDebut)
+      .set('dateFin', dateFin);
+      
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/fournisseurs-repartition-dates`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération de la répartition des fournisseurs par dates:', error);
         return of({
           labels: ['STE BOUZGUENDA', 'KBS CONSULTING', 'GEOMED', 'MEDIBAT', 'STT'],
           data: [3, 1, 2, 4, 1],
-          colors: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6']
+          colors: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6'],
+          dateDebut,
+          dateFin
         });
       })
     );
@@ -215,12 +339,39 @@ export class StatistiquesService {
       params = params.set('numStruct', numStruct);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/statistiques/regions-repartition`, { params }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/statistiques/regions-repartition-periode`, { params }).pipe(
       catchError(error => {
         console.error('Erreur lors de la récupération de la répartition par région:', error);
+        // Retourner des données vides en cas d'erreur au lieu de données factices
+        return of({
+          labels: [],
+          data: [],
+          details: []
+        });
+      })
+    );
+  }
+  
+  /**
+   * Récupère la répartition des régions par dates personnalisées
+   */
+  getRegionsRepartitionParDates(dateDebut: string, dateFin: string, numStruct?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('dateDebut', dateDebut)
+      .set('dateFin', dateFin);
+      
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/regions-repartition-dates`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération de la répartition des régions par dates:', error);
         return of({
           labels: ['Tunis', 'Sfax', 'Sousse', 'Gabès', 'Bizerte'],
-          data: [5, 3, 2, 1, 2]
+          data: [5, 3, 2, 1, 2],
+          dateDebut,
+          dateFin
         });
       })
     );
@@ -235,15 +386,71 @@ export class StatistiquesService {
       params = params.set('numStruct', numStruct);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/statistiques/articles-repartition`, { params }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/statistiques/articles-repartition-periode`, { params }).pipe(
       catchError(error => {
         console.error('Erreur lors de la récupération de la répartition des articles:', error);
+        // Retourner des données vides en cas d'erreur au lieu de données factices
         return of({
-          labels: ['GAZ', 'EAU', 'ÉLECTRICITÉ', 'TRAVAUX', 'SERVICES'],
-          data: [45, 30, 15, 8, 2]
+          labels: [],
+          data: [],
+          details: []
         });
       })
     );
+  }
+  
+  /**
+   * Récupère la répartition des articles par secteur avec dates personnalisées
+   */
+  getArticlesRepartitionParDates(dateDebut: string, dateFin: string, numStruct?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('dateDebut', dateDebut)
+      .set('dateFin', dateFin);
+      
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/articles-repartition-dates`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération de la répartition des articles par dates:', error);
+        return of({
+          labels: ['GAZ', 'EAU', 'ÉLECTRICITÉ', 'TRAVAUX', 'SERVICES'],
+          data: [45, 30, 15, 8, 2],
+          dateDebut,
+          dateFin
+        });
+      })
+    );
+  }
+  
+  /**
+   * Calcule la différence en mois entre deux dates
+   */
+  private getMonthDifference(startDate: Date, endDate: Date): number {
+    return (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+           (endDate.getMonth() - startDate.getMonth());
+  }
+  
+  /**
+   * Génère des étiquettes de mois à partir d'une date de début et d'un nombre de mois
+   * @param startDate Date de début
+   * @param numMonths Nombre de mois à générer
+   * @returns Liste des étiquettes de mois au format "MMM YYYY"
+   */
+  generateMonthLabels(startDate: Date, numMonths: number): string[] {
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const labels: string[] = [];
+    
+    for (let i = 0; i < numMonths; i++) {
+      const date = new Date(startDate);
+      date.setMonth(startDate.getMonth() + i);
+      const monthName = monthNames[date.getMonth()];
+      const year = date.getFullYear();
+      labels.push(`${monthName} ${year}`);
+    }
+    
+    return labels;
   }
 
   /**
@@ -288,6 +495,31 @@ export class StatistiquesService {
           tendanceFournisseurs: 8.3,
           tendanceArticles: 0.0,
           tendanceValeur: 15.7
+        });
+      })
+    );
+  }
+  
+  /**
+   * Récupère les tendances des métriques clés sur une période donnée
+   * @param mois Nombre de mois pour calculer les tendances
+   * @param numStruct Numéro de structure (optionnel)
+   */
+  getTendancesMetriques(mois: number = 3, numStruct?: string): Observable<any> {
+    let params = new HttpParams().set('mois', mois.toString());
+    if (numStruct) {
+      params = params.set('numStruct', numStruct);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/statistiques/metriques/tendances`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération des tendances des métriques:', error);
+        return of({
+          tendanceMarchés: 12.5,
+          tendanceFournisseurs: 8.3,
+          tendanceArticles: 0.0,
+          tendanceValeur: 15.7,
+          periodeMois: mois
         });
       })
     );
@@ -394,9 +626,41 @@ export class StatistiquesService {
   }
 
   /**
-   * Export des données
+   * Export des données avec filtrage par période
    */
-  exporterDonnees(format: 'pdf' | 'excel' | 'csv', filtres?: FiltresStatistiques): Observable<Blob> {
+  exporterDonnees(format: 'pdf' | 'excel', dateDebut?: string, dateFin?: string, numStruct?: string): Observable<Blob> {
+    const params: { [key: string]: string } = {
+      type: 'marches'
+    };
+    
+    if (dateDebut) {
+      params['dateDebut'] = dateDebut;
+    }
+    if (dateFin) {
+      params['dateFin'] = dateFin;
+    }
+    if (numStruct) {
+      params['numStruct'] = numStruct;
+    }
+
+    const endpoint = format === 'pdf' ? '/export/pdf' : '/export/excel';
+    
+    // Headers pour forcer l'encodage UTF-8
+    const headers = {
+      'Accept': 'application/octet-stream'
+    };
+    
+    return this.http.get(`${this.apiUrl}/statistiques${endpoint}`, {
+      params,
+      headers,
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Export des données (ancienne méthode pour compatibilité)
+   */
+  exporterDonneesAncien(format: 'pdf' | 'excel' | 'csv', filtres?: FiltresStatistiques): Observable<Blob> {
     const params = this.buildHttpParams(filtres);
     params.set('format', format);
 
@@ -472,4 +736,34 @@ export class StatistiquesService {
       observer.complete();
     });
   }
+
+  /**
+   * Récupère la répartition des articles par secteur économique
+   */
+  getArticlesBySecteur(numStruct?: string): Observable<any> {
+    let params = new HttpParams();
+    if (numStruct) params = params.set('numStruct', numStruct);
+    return this.http.get<any>(`${this.apiUrl}/statistiques/articles-by-secteur`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération des articles par secteur:', error);
+        return of({ articlesBySecteur: [] });
+      })
+    );
+  }
+
+  /**
+   * Récupère l'évolution des décomptes par type
+   */
+  getDecomptesByType(numStruct?: string): Observable<any> {
+    let params = new HttpParams();
+    if (numStruct) params = params.set('numStruct', numStruct);
+    return this.http.get<any>(`${this.apiUrl}/statistiques/decomptes-by-type`, { params }).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération des décomptes par type:', error);
+        return of({ decomptesByType: [] });
+      })
+    );
+  }
+
+
 }

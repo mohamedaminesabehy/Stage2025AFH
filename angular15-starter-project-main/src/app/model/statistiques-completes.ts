@@ -5,10 +5,11 @@ export interface StatistiquesArticlesComplet {
   articlesBySecteur: ArticleBySecteur[];
   articlesByFamille: ArticleByFamille[];
   articlesExtremes: ArticleExtreme[];
-  distributionPrix: DistributionPrix[];
+  repartitionUnites: RepartitionUnite[];
   articlesStatut: ArticlesStatut;
   topArticles: TopArticle[];
-  uniteMesure: UniteMesure[];
+  evolutionDecomptes: EvolutionDecompte[];
+  topFournisseursVolume: TopFournisseurVolume[];
   articlesSansMouvement: number;
 }
 
@@ -29,9 +30,24 @@ export interface ArticleExtreme {
   type: 'plus_cher' | 'moins_cher';
 }
 
-export interface DistributionPrix {
-  tranche: string;
-  nombre: number;
+export interface RepartitionUnite {
+  unite: string;
+  nombreArticles: number;
+  pourcentage: number;
+}
+
+export interface EvolutionDecompte {
+  mois: string;
+  nombreDecomptes: number;
+  montantTotal: number;
+}
+
+export interface TopFournisseurVolume {
+  fournisseur: string;
+  nombreArticles: number;
+  volumeTotal: number;
+  montantTotal: number;
+  rang: number;
 }
 
 export interface ArticlesStatut {

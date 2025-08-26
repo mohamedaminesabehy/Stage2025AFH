@@ -76,4 +76,14 @@ export class MarcheService {
     return this.http.get<any[]>(`${this.apiUrl}/allMarches`, { params });
   }
 
+  /**
+   * Récupère tous les marchés d'un fournisseur spécifique
+   * @param numFourn Numéro du fournisseur
+   * @returns Observable avec la liste des marchés du fournisseur
+   */
+  getMarchesByFournisseur(numFourn: string): Observable<any[]> {
+    let params = new HttpParams().set('numFourn', numFourn);
+    return this.http.get<any[]>(`${this.apiUrl}/fournisseur`, { params });
+  }
+
 }

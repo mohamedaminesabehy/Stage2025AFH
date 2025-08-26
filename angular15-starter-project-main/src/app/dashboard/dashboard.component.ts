@@ -4,7 +4,7 @@ import { FournisseurService } from '../services/fournisseur/fournisseur.service'
 import { ArticleService } from '../services/article/article.service';
 import { MarcheService } from '../services/marche/marche.service';
 import { DashboardService, DashboardStats, ChartData as DashboardChartData, SystemStatus, Activity } from '../services/dashboard/dashboard.service';
-import { HttpClient } from '@angular/common/http';
+// import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, of } from 'rxjs';
 import { environment } from 'src/environnement';
 import { ChartConfiguration, ChartData } from 'chart.js';
@@ -82,16 +82,127 @@ export class DashboardComponent implements OnInit {
   dashboardAlertes: DashboardAlert[] = [];
 
   // Graphiques pour les nouveaux widgets
+  // UI state
+  isGarantiesLoading = false;
+
   garantiesChart: ChartData<'doughnut'> = { labels: [], datasets: [] };
   penalitesTypeChart: ChartData<'doughnut'> = { labels: [], datasets: [] };
   evolutionPaiementsChart: ChartData<'line'> = { labels: [], datasets: [] };
+  garantiesTopMarchesChart: ChartData<'bar'> = { labels: [], datasets: [] };
+
+  topFournisseurs6Chart: ChartData<'doughnut'> = { labels: [], datasets: [] };
+
   secteurChart: ChartData<'bar'> = { labels: [], datasets: [] };
   evolutionPrixChart: ChartData<'line'> = { labels: [], datasets: [] };
+  secteurSynthese: ChartData<'doughnut'> = { labels: [], datasets: [] };
 
-  // Données et filtres pour Garanties détaillées
-  garantiesEcheanceFiltered: { marcheDesignation: string; typeGarantie: string; dateFin: string | Date; montant: number; }[] = [];
+  secteurLegend: Array<{ label: string; value: number; percent: number; color: string }> = [];
+  secteurDoughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const label = ctx.label || '';
+            const value = ctx.parsed || 0;
+            const total = (ctx.chart.data.datasets?.[0]?.data as number[]).reduce((a,b)=>a+(b||0),0) || 1;
+            const pct = (value / total) * 100;
+            return `${label}: ${value} (${pct.toFixed(1)}%)`;
+          }
+        }
+      },
+      legend: { display: false }
+    },
+    cutout: '55%'
+  };
+
+
+  // Données et filtres pour Garanties détaillées (+ pagination)
+  garantiesEcheanceFiltered: { marcheDesignation: string; typeGarantie: string; montant: number; }[] = [];
   garantiesTypesOptions: string[] = [];
-  garantieFilter: { marche: string; type: string; dateMin: string | null; dateMax: string | null } = { marche: '', type: '', dateMin: null, dateMax: null };
+  garantieFilter: { marche: string; type: string } = { marche: '', type: '' };
+  // Pagination
+  garantiesPageIndex = 0;
+  garantiesPageSize = 10;
+  // Analyse sectorielle détaillée (front-only à partir de sectoriellesData.repartitionParSecteur)
+  sectorFilter = '';
+  sectorRows: { designation: string; marches: number; articles: number; part: number; }[] = [];
+  sectorFiltered: { designation: string; marches: number; articles: number; part: number; }[] = [];
+  sectorPageIndex = 0;
+  sectorPageSize = 10;
+  sectorPageSizeOptions = [10, 25, 50];
+  get sectorPage() { const s = this.sectorPageIndex * this.sectorPageSize; return this.sectorFiltered.slice(s, s + this.sectorPageSize); }
+  get sectorTotal() { return this.sectorFiltered.length; }
+  get sectorRangeLabel() {
+    if (this.sectorTotal === 0) return `Lignes 0-0 sur 0 (Page 0/0)`;
+    const start = this.sectorPageIndex * this.sectorPageSize + 1;
+    const end = Math.min((this.sectorPageIndex + 1) * this.sectorPageSize, this.sectorTotal);
+    const page = this.sectorPageIndex + 1;
+    const totalPages = Math.max(1, Math.ceil(this.sectorTotal / this.sectorPageSize));
+    return `Lignes ${start}-${end} sur ${this.sectorTotal} (Page ${page}/${totalPages})`;
+  }
+
+  prepareSectorRows(): void {
+    const list = this.sectoriellesData?.repartitionParSecteur || [];
+    const totalMarches = list.reduce((sum, x) => sum + (x.nombreMarches || 0), 0) || 1;
+    this.sectorRows = list.map(x => ({
+      designation: x.designation,
+      marches: x.nombreMarches || 0,
+      articles: x.nombreArticles || 0,
+      part: ((x.nombreMarches || 0) / totalMarches) * 100,
+    }));
+    this.applySectorFilter();
+  }
+  applySectorFilter(): void {
+    const q = (this.sectorFilter || '').toLowerCase();
+    this.sectorFiltered = this.sectorRows.filter(r => q ? (r.designation || '').toLowerCase().includes(q) : true);
+    this.sectorPageIndex = 0;
+  }
+  sectorChangePageSize(size: number | string) { const n = typeof size === 'string' ? parseInt(size, 10) : size; this.sectorPageSize = isNaN(n as number) ? 10 : (n as number); this.sectorPageIndex = 0; }
+  sectorFirst() { this.sectorPageIndex = 0; }
+  sectorPrev() { if (this.sectorPageIndex > 0) this.sectorPageIndex--; }
+  sectorNext() { const totalPages = Math.ceil(this.sectorTotal / this.sectorPageSize); if (this.sectorPageIndex + 1 < totalPages) this.sectorPageIndex++; }
+  sectorLast() { const totalPages = Math.ceil(this.sectorTotal / this.sectorPageSize); this.sectorPageIndex = Math.max(0, totalPages - 1); }
+
+  garantiesPageSizeOptions: number[] = [10, 25, 50];
+  get garantiesPage(): { marcheDesignation: string; typeGarantie: string; montant: number; }[] {
+    const start = this.garantiesPageIndex * this.garantiesPageSize;
+    return this.garantiesEcheanceFiltered.slice(start, start + this.garantiesPageSize);
+  }
+  get garantiesTotal(): number { return this.garantiesEcheanceFiltered.length; }
+  get garantiesRangeLabel(): string {
+    if (this.garantiesTotal === 0) {
+      return `Lignes 0-0 sur 0 (Page 0/0)`;
+    }
+    const start = this.garantiesPageIndex * this.garantiesPageSize + 1;
+    const end = Math.min((this.garantiesPageIndex + 1) * this.garantiesPageSize, this.garantiesTotal);
+    const page = this.garantiesPageIndex + 1;
+    const totalPages = Math.max(1, Math.ceil(this.garantiesTotal / this.garantiesPageSize));
+    return `Lignes ${start}-${end} sur ${this.garantiesTotal} (Page ${page}/${totalPages})`;
+  }
+  garantiesChangePageSize(size: number | string): void {
+    const n = typeof size === 'string' ? parseInt(size, 10) : size;
+    this.garantiesPageSize = isNaN(n as number) ? 10 : (n as number);
+    this.garantiesPageIndex = 0;
+  }
+  garantiesFirst(): void { this.garantiesPageIndex = 0; }
+  garantiesLast(): void {
+    const totalPages = Math.ceil(this.garantiesTotal / this.garantiesPageSize);
+    this.garantiesPageIndex = Math.max(0, totalPages - 1);
+  }
+
+  garantiesNext(): void {
+    const totalPages = Math.ceil(this.garantiesTotal / this.garantiesPageSize);
+    if (this.garantiesPageIndex + 1 < totalPages) {
+      this.garantiesPageIndex++;
+    }
+  }
+  garantiesPrev(): void {
+    if (this.garantiesPageIndex > 0) {
+      this.garantiesPageIndex--;
+    }
+  }
 
   // Options des graphiques
   lineChartOptions: ChartConfiguration<'line'>['options'] = {
@@ -130,12 +241,27 @@ export class DashboardComponent implements OnInit {
       }
     },
     scales: {
+      y: { beginAtZero: true, ticks: { color: '#7f8c8d' } },
+      x: { ticks: { color: '#7f8c8d' } }
+    }
+  };
+
+  secteurBarOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { color: '#2c3e50' } },
+      title: { display: false }
+    },
+    scales: {
       y: {
         beginAtZero: true,
-        ticks: { color: '#7f8c8d' }
+        ticks: { color: '#7f8c8d', stepSize: 1 },
+        grid: { color: 'rgba(0,0,0,0.05)' }
       },
       x: {
-        ticks: { color: '#7f8c8d' }
+        ticks: { color: '#7f8c8d', autoSkip: false, maxRotation: 30, minRotation: 0 },
+        grid: { display: false }
       }
     }
   };
@@ -144,6 +270,7 @@ export class DashboardComponent implements OnInit {
   recentActivities = [
     { time: '10:15', message: 'Marché "M123" ajouté', type: 'add', user: 'Ahmed' },
     { time: '09:45', message: 'Article "A58" modifié', type: 'edit', user: 'Sonia' },
+
     { time: 'Hier', message: 'Fournisseur "ABC" enregistré', type: 'add', user: 'Mohamed' },
     { time: 'Hier', message: 'Pénalité appliquée à "M122"', type: 'alert', user: 'Leila' },
     { time: '22/05', message: 'Décompte validé pour "M120"', type: 'success', user: 'Karim' }
@@ -157,11 +284,9 @@ export class DashboardComponent implements OnInit {
     performanceTrend: 3.7
   };
 
-  // Données météo (API externe)
-  weatherData: any = null;
-
-  // Taux de change (API externe)
-  exchangeRates: any = null;
+  // Widgets externes supprimés (météo, taux de change) pour respecter la règle "données depuis la BD"
+  // weatherData: any = null;
+  // exchangeRates: any = null;
 
   // Accès rapides
   quickAccess = [
@@ -179,8 +304,7 @@ export class DashboardComponent implements OnInit {
     private articleService: ArticleService,
     private marcheService: MarcheService,
     private dashboardService: DashboardService,
-    private dashboardWidgetsService: DashboardWidgetsService,
-    private http: HttpClient
+    private dashboardWidgetsService: DashboardWidgetsService
   ) {}
 
   ngOnInit(): void {
@@ -225,60 +349,15 @@ export class DashboardComponent implements OnInit {
       }]
     };
 
-    // Données pour les top fournisseurs (exemple)
-    this.topFournisseurs = {
-      labels: ['STEG', 'GEOMED', 'MEDIBAT', 'STT', 'EL OUKHOUA'],
-      datasets: [{
-        label: 'Marchés',
-        data: [3, 2, 1, 1, 1],
-        backgroundColor: [
-          'rgba(52, 152, 219, 0.7)',
-          'rgba(46, 204, 113, 0.7)',
-          'rgba(155, 89, 182, 0.7)',
-          'rgba(241, 196, 15, 0.7)',
-          'rgba(231, 76, 60, 0.7)'
-        ],
-        borderColor: [
-          'rgba(52, 152, 219, 1)',
-          'rgba(46, 204, 113, 1)',
-          'rgba(155, 89, 182, 1)',
-          'rgba(241, 196, 15, 1)',
-          'rgba(231, 76, 60, 1)'
-        ],
-        borderWidth: 1
-      }]
-    };
+    // Supprimé: données mock pour top fournisseurs. Sera alimenté via l'API.
+    this.dashboardService.getTopFournisseurs().subscribe({
+      next: (chart) => this.updateFournisseursChart(chart),
+      error: () => this.updateFournisseursChart({ labels: [], data: [] })
+    });
   }
 
-  loadExternalAPIs(): void {
-    // Récupérer les données météo (exemple avec OpenWeatherMap)
-    this.http.get('https://api.openweathermap.org/data/2.5/weather?q=Tunis&appid=YOUR_API_KEY&units=metric')
-      .pipe(catchError(error => {
-        console.error('Erreur lors de la récupération des données météo', error);
-        // Données de démonstration en cas d'erreur
-        return of({
-          main: { temp: 28, humidity: 65 },
-          weather: [{ description: 'Ensoleillé' }],
-          wind: { speed: 12 }
-        });
-      }))
-      .subscribe(data => {
-        this.weatherData = data;
-      });
-
-    // Récupérer les taux de change (exemple avec ExchangeRate-API)
-    this.http.get('https://api.exchangerate-api.com/v4/latest/TND')
-      .pipe(catchError(error => {
-        console.error('Erreur lors de la récupération des taux de change', error);
-        // Données de démonstration en cas d'erreur
-        return of({
-          rates: { EUR: 0.29, USD: 0.32, GBP: 0.25 }
-        });
-      }))
-      .subscribe(data => {
-        this.exchangeRates = data;
-      });
-  }
+  // Widgets externes supprimés
+  private loadExternalAPIs(): void { /* supprimé */ }
 
   navigateToPath(path: string): void {
     this.router.navigate(['/' + path]);
@@ -387,6 +466,71 @@ export class DashboardComponent implements OnInit {
         borderWidth: 1
       }]
     };
+    // Met à jour le doughnut Top 5 + Autres
+    this.topFournisseurs6Chart = this.buildTopFournisseurs6Chart(data);
+
+  }
+
+
+  /**
+   * Calcule un doughnut: Top 5 fournisseurs + Autres
+   */
+  private buildTopFournisseurs6Chart(data: DashboardChartData): ChartData<'doughnut'> {
+    const labels = [...data.labels];
+    const values = [...data.data];
+    if (labels.length <= 6) {
+      return {
+        labels,
+        datasets: [{
+          label: 'Fournisseurs',
+          data: values,
+          backgroundColor: [
+            'rgba(52, 152, 219, 0.7)',
+            'rgba(46, 204, 113, 0.7)',
+            'rgba(155, 89, 182, 0.7)',
+            'rgba(241, 196, 15, 0.7)',
+            'rgba(231, 76, 60, 0.7)',
+            'rgba(127, 140, 141, 0.7)'
+          ],
+          borderColor: [
+            'rgba(52, 152, 219, 1)',
+            'rgba(46, 204, 113, 1)',
+            'rgba(155, 89, 182, 1)',
+            'rgba(241, 196, 15, 1)',
+            'rgba(231, 76, 60, 1)',
+            'rgba(127, 140, 141, 1)'
+          ],
+          borderWidth: 1
+        }]
+      };
+    }
+    const top5Labels = labels.slice(0, 5);
+    const top5Values = values.slice(0, 5);
+    const others = values.slice(5).reduce((a, b) => a + b, 0);
+    return {
+      labels: [...top5Labels, 'Autres'],
+      datasets: [{
+        label: 'Fournisseurs',
+        data: [...top5Values, others],
+        backgroundColor: [
+          'rgba(52, 152, 219, 0.7)',
+          'rgba(46, 204, 113, 0.7)',
+          'rgba(155, 89, 182, 0.7)',
+          'rgba(241, 196, 15, 0.7)',
+          'rgba(231, 76, 60, 0.7)',
+          'rgba(127, 140, 141, 0.7)'
+        ],
+        borderColor: [
+          'rgba(52, 152, 219, 1)',
+          'rgba(46, 204, 113, 1)',
+          'rgba(155, 89, 182, 1)',
+          'rgba(241, 196, 15, 1)',
+          'rgba(231, 76, 60, 1)',
+          'rgba(127, 140, 141, 1)'
+        ],
+        borderWidth: 1
+      }]
+    };
   }
 
   /**
@@ -403,6 +547,7 @@ export class DashboardComponent implements OnInit {
    * Charge toutes les données des widgets
    */
   loadWidgetsData(): void {
+    this.isGarantiesLoading = true;
     this.dashboardWidgetsService.refreshAllWidgets().subscribe({
       next: (data) => {
         this.penalitesData = data.penalites;
@@ -418,6 +563,10 @@ export class DashboardComponent implements OnInit {
         this.updateWidgetCharts();
         // Préparer Garanties détaillées + filtres
         this.prepareGarantiesTable();
+        this.applyGarantiesFilter();
+        // Calculer la synthèse sectorielle (Top 5 + Autres) + légende
+        this.buildSecteurSynthese();
+        this.rebuildSecteurLegend();
 
         // S'abonner aux alertes
         this.dashboardWidgetsService.alertes$.subscribe(alertes => {
@@ -426,6 +575,9 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur lors du chargement des widgets:', error);
+      },
+      complete: () => {
+        this.isGarantiesLoading = false;
       }
     });
   }
@@ -453,11 +605,67 @@ export class DashboardComponent implements OnInit {
             'rgba(46, 204, 113, 1)',
             'rgba(155, 89, 182, 1)',
             'rgba(241, 196, 15, 1)',
+
             'rgba(231, 76, 60, 1)'
           ],
           borderWidth: 1
         }]
       };
+    // Graphique Top marchés par montant de garanties (bar)
+    if (this.garantiesData.garantiesEcheanceList && this.garantiesData.garantiesEcheanceList.length > 0) {
+      const agg = new Map<string, number>();
+      for (const g of this.garantiesData.garantiesEcheanceList) {
+        const key = g.marcheDesignation || 'Marché';
+        agg.set(key, (agg.get(key) || 0) + (g.montant || 0));
+      }
+      const entries = Array.from(agg.entries()).sort((a,b)=> b[1]-a[1]).slice(0, 10);
+      this.garantiesTopMarchesChart = {
+        labels: entries.map(e => e[0]),
+        datasets: [{
+          label: 'Montant des garanties',
+          data: entries.map(e => e[1]),
+          backgroundColor: 'rgba(52, 152, 219, 0.7)',
+          borderColor: 'rgba(52, 152, 219, 1)',
+          borderWidth: 1
+        }]
+      };
+    }
+
+
+    // Synthèse sectorielle: Top 5 + Autres (doughnut)
+    if (this.sectoriellesData.repartitionParSecteur && this.sectoriellesData.repartitionParSecteur.length > 0) {
+      const rows = this.sectoriellesData.repartitionParSecteur.map(s => ({ label: s.designation || 'Non spécifié', value: s.nombreMarches || 0 }))
+        .sort((a,b)=> b.value - a.value);
+      const top5 = rows.slice(0,5);
+      const others = rows.slice(5).reduce((sum, r)=> sum + r.value, 0);
+      const labels = others > 0 ? [...top5.map(r=>r.label), 'Autres'] : top5.map(r=>r.label);
+      const data = others > 0 ? [...top5.map(r=>r.value), others] : top5.map(r=>r.value);
+      this.secteurSynthese = {
+        labels,
+        datasets: [{
+          label: 'Marchés',
+          data,
+          backgroundColor: [
+            'rgba(52, 152, 219, 0.7)',
+            'rgba(46, 204, 113, 0.7)',
+            'rgba(155, 89, 182, 0.7)',
+            'rgba(241, 196, 15, 0.7)',
+            'rgba(231, 76, 60, 0.7)',
+            'rgba(127, 140, 141, 0.7)'
+          ],
+          borderColor: [
+            'rgba(52, 152, 219, 1)',
+            'rgba(46, 204, 113, 1)',
+            'rgba(155, 89, 182, 1)',
+            'rgba(241, 196, 15, 1)',
+            'rgba(231, 76, 60, 1)',
+            'rgba(127, 140, 141, 1)'
+          ],
+          borderWidth: 1
+        }]
+      };
+    }
+
     }
 
     // Graphique des pénalités par type (doughnut)
@@ -501,27 +709,31 @@ export class DashboardComponent implements OnInit {
       };
     }
 
-    // Graphique des secteurs (bar)
+    // Graphique des secteurs (bar horizontal trié)
     if (this.sectoriellesData.repartitionParSecteur.length > 0) {
+      const rows = [...this.sectoriellesData.repartitionParSecteur]
+        .sort((a, b) => (b.nombreMarches || 0) - (a.nombreMarches || 0));
       this.secteurChart = {
-        labels: this.sectoriellesData.repartitionParSecteur.map(s => s.designation),
+        labels: rows.map(s => s.designation),
         datasets: [
           {
             label: 'Marchés',
-            data: this.sectoriellesData.repartitionParSecteur.map(s => s.nombreMarches),
+            data: rows.map(s => s.nombreMarches),
             backgroundColor: 'rgba(52, 152, 219, 0.7)',
             borderColor: 'rgba(52, 152, 219, 1)',
             borderWidth: 1
           },
           {
             label: 'Articles',
-            data: this.sectoriellesData.repartitionParSecteur.map(s => s.nombreArticles),
+            data: rows.map(s => s.nombreArticles),
             backgroundColor: 'rgba(46, 204, 113, 0.7)',
             borderColor: 'rgba(46, 204, 113, 1)',
             borderWidth: 1
           }
         ]
       };
+      // Basculer l'axe en horizontal
+      this.secteurBarOptions = { ...(this.secteurBarOptions || {}), indexAxis: 'y' } as any;
     }
 
     // Graphique de l'évolution des prix (line)
@@ -549,23 +761,18 @@ export class DashboardComponent implements OnInit {
     this.garantiesTypesOptions = types.sort((a, b) => a.localeCompare(b));
   }
 
-  /** Applique les filtres locaux sur la table des garanties */
+  /** Applique les filtres locaux sur la table des garanties (sans dates) */
   applyGarantiesFilter(): void {
     const src = this.garantiesData.garantiesEcheanceList || [];
     const f = this.garantieFilter;
 
-    const toDate = (d: any) => d ? new Date(d as any) : null;
-    const min = f.dateMin ? new Date(f.dateMin) : null;
-    const max = f.dateMax ? new Date(f.dateMax) : null;
-
     this.garantiesEcheanceFiltered = src.filter(g => {
       const okMarche = f.marche ? (g.marcheDesignation || '').toLowerCase().includes(f.marche.toLowerCase()) : true;
       const okType = f.type ? g.typeGarantie === f.type : true;
-      const df = toDate(g.dateFin);
-      const okMin = min ? (!!df && df >= min) : true;
-      const okMax = max ? (!!df && df <= max) : true;
-      return okMarche && okType && okMin && okMax;
+      return okMarche && okType;
     });
+    // Réinitialiser la pagination à la première page après filtrage
+    this.garantiesPageIndex = 0;
   }
 
   /**
@@ -575,6 +782,55 @@ export class DashboardComponent implements OnInit {
     this.refreshData();
     this.loadWidgetsData();
   }
+
+  /** Calcule la synthèse sectorielle Top 5 + Autres (doughnut) */
+  private buildSecteurSynthese(): void {
+    const list = this.sectoriellesData?.repartitionParSecteur || [];
+    if (!list || list.length === 0) { this.secteurSynthese = { labels: [], datasets: [] }; return; }
+    const rows = list.map(s => ({ label: s.designation || 'Non spécifié', value: s.nombreMarches || 0 }))
+                     .sort((a,b)=> b.value - a.value);
+    const top5 = rows.slice(0,5);
+    const others = rows.slice(5).reduce((sum, r)=> sum + r.value, 0);
+    const labels = others > 0 ? [...top5.map(r=>r.label), 'Autres'] : top5.map(r=>r.label);
+    const data = others > 0 ? [...top5.map(r=>r.value), others] : top5.map(r=>r.value);
+    const backgroundColor = [
+      'rgba(52, 152, 219, 0.7)',
+      'rgba(46, 204, 113, 0.7)',
+      'rgba(155, 89, 182, 0.7)',
+      'rgba(241, 196, 15, 0.7)',
+      'rgba(231, 76, 60, 0.7)',
+      'rgba(127, 140, 141, 0.7)'
+    ];
+    const borderColor = [
+      'rgba(52, 152, 219, 1)',
+      'rgba(46, 204, 113, 1)',
+      'rgba(155, 89, 182, 1)',
+      'rgba(241, 196, 15, 1)',
+      'rgba(231, 76, 60, 1)',
+      'rgba(127, 140, 141, 1)'
+    ];
+    this.secteurSynthese = {
+      labels,
+      datasets: [{ label: 'Marchés', data, backgroundColor, borderColor, borderWidth: 1 }]
+    };
+    // reconstruire la légende en cohérence avec les couleurs
+    this.rebuildSecteurLegend();
+  }
+  /** Reconstruit la légende affichée à droite du doughnut */
+  private rebuildSecteurLegend(): void {
+    const ds = this.secteurSynthese?.datasets?.[0];
+    const labels = this.secteurSynthese?.labels as string[] || [];
+    const data = (ds?.data as number[]) || [];
+    const colors = (ds as any)?.backgroundColor as string[] || [];
+    const total = data.reduce((a,b)=>a+(b||0),0) || 1;
+    this.secteurLegend = labels.map((label, idx) => ({
+      label,
+      value: data[idx] || 0,
+      percent: total ? ((data[idx] || 0) / total) * 100 : 0,
+      color: colors[idx] || '#bdc3c7'
+    }));
+  }
+
 
   /**
    * Ferme une alerte

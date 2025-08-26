@@ -209,10 +209,11 @@ export class StatistiquesCompletesService {
       articlesBySecteur: [],
       articlesByFamille: [],
       articlesExtremes: [],
-      distributionPrix: [],
+      repartitionUnites: [],
       articlesStatut: { actif: 0, inactif: 0, obsolete: 0 },
       topArticles: [],
-      uniteMesure: [],
+      evolutionDecomptes: [],
+      topFournisseursVolume: [],
       articlesSansMouvement: 0
     };
   }

@@ -61,44 +61,22 @@
   </div>
 
   <!-- ========== ALERTES DASHBOARD ========== -->
-  <div class="dashboard-alerts" *ngIf="dashboardAlertes.length > 0">
-    <div class="alert" *ngFor="let alert of dashboardAlertes"
-         [ngClass]="'alert-' + alert.type">
-      <div class="alert-icon">
-        <i [class]="alert.type === 'warning' ? 'fas fa-exclamation-triangle' :
-                   alert.type === 'error' ? 'fas fa-times-circle' :
-                   alert.type === 'info' ? 'fas fa-info-circle' : 'fas fa-check-circle'"></i>
-      </div>
-      <div class="alert-content">
-        <h5>{{alert.title}}</h5>
-        <p>{{alert.message}}</p>
-        <small>{{alert.timestamp | date:'HH:mm'}}</small>
-      </div>
-      <button class="alert-close" (click)="dismissAlert(alert.id)">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  </div>
+  <!-- Section alertes retirée selon la demande -->
 
 
   <!-- Contenu principal -->
   <div class="main-content">
     <!-- Colonne gauche: Graphiques -->
     <div class="charts-section">
-      <div class="chart-container">
-        <canvas baseChart
-          [data]="marchesByMonth"
-          [options]="lineChartOptions"
-          [type]="'line'">
-        </canvas>
-      </div>
-      <div class="chart-container">
+      <div class="chart-container" *ngIf="topFournisseurs.labels && topFournisseurs.labels.length > 0">
+        <h4 class="chart-title"><i class="fas fa-people-carry"></i> Top fournisseurs</h4>
         <canvas baseChart
           [data]="topFournisseurs"
           [options]="barChartOptions"
           [type]="'bar'">
         </canvas>
       </div>
+
 
       <!-- ========== NOUVEAUX GRAPHIQUES WIDGETS ========== -->
 
@@ -115,13 +93,13 @@
       </div>
 
       <!-- Graphique répartition par secteur -->
-      <div class="chart-container" *ngIf="secteurChart.labels && secteurChart.labels.length > 0">
+      <div class="chart-container sector-bar" *ngIf="secteurChart.labels && secteurChart.labels.length > 0">
         <h4 class="chart-title">
-          <i class="fas fa-industry"></i> Répartition par secteur
+          <i class="fas fa-industry"></i> Répartition par secteur (Marchés et articles)
         </h4>
         <canvas baseChart
           [data]="secteurChart"
-          [options]="barChartOptions"
+          [options]="secteurBarOptions"
           [type]="'bar'">
         </canvas>
       </div>
@@ -151,29 +129,64 @@
               <option value="">Tous types</option>
               <option *ngFor="let t of garantiesTypesOptions" [value]="t">{{t}}</option>
             </select>
-            <input class="form-control form-control-sm" type="date" [(ngModel)]="garantieFilter.dateMin" (change)="applyGarantiesFilter()" />
-            <input class="form-control form-control-sm" type="date" [(ngModel)]="garantieFilter.dateMax" (change)="applyGarantiesFilter()" />
+            <!-- Filtres de date supprimés -->
           </div>
         </div>
 
-        <table class="table table-sm mt-3">
-          <thead>
-            <tr>
-              <th>Marché</th>
-              <th>Type</th>
-              <th>Échéance</th>
-              <th class="text-end">Montant</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let g of garantiesEcheanceFiltered">
-              <td>{{g.marcheDesignation}}</td>
-              <td>{{g.typeGarantie}}</td>
-              <td>{{g.dateFin | date:'dd/MM/yyyy'}}</td>
-              <td class="text-end">{{formatCurrency(g.montant)}}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-wrapper mt-3">
+          <div class="loading-overlay" *ngIf="isGarantiesLoading">
+            <div class="spinner-border text-primary spinner-border-sm" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <span class="ms-2">Chargement des garanties...</span>
+          </div>
+          <table class="table table-sm table-zebra">
+            <thead>
+              <tr>
+                <th class="sticky">Marché</th>
+                <th class="sticky">Type</th>
+                <th class="text-end sticky">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!isGarantiesLoading && garantiesTotal === 0">
+                <td colspan="3" class="text-center text-muted py-3">Aucune garantie à afficher</td>
+              </tr>
+              <tr *ngFor="let g of garantiesPage">
+                <td class="truncate" [title]="g.marcheDesignation">{{g.marcheDesignation}}</td>
+                <td>{{g.typeGarantie}}</td>
+                <td class="text-end">{{formatCurrency(g.montant)}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <label class="me-1 text-muted">Items per page:</label>
+                      <select class="form-select form-select-sm w-auto" [ngModel]="garantiesPageSize" (ngModelChange)="garantiesChangePageSize($event)">
+                        <option *ngFor="let s of garantiesPageSizeOptions" [value]="s">{{s}}</option>
+                      </select>
+                      <small class="text-muted ms-2">{{garantiesRangeLabel}}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="garantiesPageIndex === 0" (click)="garantiesFirst()">« Première</button>
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="garantiesPageIndex === 0" (click)="garantiesPrev()">‹ 10 précédentes</button>
+                      <button class="btn btn-sm btn-primary" [disabled]="(garantiesPageIndex + 1) * garantiesPageSize >= garantiesTotal" (click)="garantiesNext()">10 suivantes ›</button>
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="(garantiesPageIndex + 1) * garantiesPageSize >= garantiesTotal" (click)="garantiesLast()">Dernière »</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-end mt-2">
+          <button class="btn btn-link btn-sm" (click)="garantieFilter = { marche: '', type: '' }; applyGarantiesFilter()">
+            Réinitialiser les filtres
+          </button>
+        </div>
       </div>
 
     </div>
@@ -262,28 +275,6 @@
             </canvas>
           </div>
 
-          <!-- Tableau garanties à échéance -->
-          <div class="garanties-echeance" *ngIf="garantiesData.garantiesEcheanceList?.length">
-            <h5>Garanties à échéance (30 jours)</h5>
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Marché</th>
-                  <th>Type</th>
-                  <th>Échéance</th>
-                  <th class="text-end">Montant</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let g of garantiesData.garantiesEcheanceList">
-                  <td>{{g.marcheDesignation}}</td>
-                  <td>{{g.typeGarantie}}</td>
-                  <td>{{g.dateFin | date:'dd/MM/yyyy'}}</td>
-                  <td class="text-end">{{formatCurrency(g.montant)}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
@@ -306,88 +297,9 @@
         </div>
       </div>
 
-      <!-- Widget Étapes -->
-      <div class="widget etapes-widget">
-        <div class="widget-header">
-          <h3><i class="fas fa-tasks"></i> Gestion des Étapes</h3>
-        </div>
-        <div class="widget-content">
-          <div class="etapes-summary">
-            <div class="etape-stat" [ngClass]="{'urgent': etapesData.etapesEnRetard > 0}">
-              <span class="stat-value">{{etapesData.etapesEnRetard}}</span>
-              <span class="stat-label">Étapes en retard</span>
-            </div>
-            <div class="etape-stat">
-              <span class="stat-value">{{formatPercentage(etapesData.progressionGlobale)}}</span>
-              <span class="stat-label">Progression globale</span>
-            </div>
-          </div>
-          <div class="alertes-delais" *ngIf="etapesData.alertesDelais.length > 0">
-            <h5>Alertes de délais</h5>
-            <div class="alerte-delai" *ngFor="let alerte of etapesData.alertesDelais.slice(0, 3)">
-              <span class="marche-name">{{alerte.marcheDesignation}}</span>
-              <span class="etape-name">{{alerte.etapeDesignation}}</span>
-              <span class="duree-prevue">{{alerte.dureePrevue}}j prévus</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Widgets externes -->
-      <div class="external-widgets">
-        <!-- Widget météo -->
-        <div class="widget weather-widget">
-          <div class="widget-header">
-            <h3><i class="fas fa-cloud-sun"></i> Météo à Tunis</h3>
-          </div>
-          <div class="widget-content" *ngIf="weatherData; else loadingWeather">
-            <div class="weather-main">
-              <span class="temperature">{{weatherData.main?.temp}}°C</span>
-              <span class="description">{{weatherData.weather?.[0]?.description}}</span>
-            </div>
-            <div class="weather-details">
-              <div class="detail">
-                <span class="label">Humidité</span>
-                <span class="value">{{weatherData.main?.humidity}}%</span>
-              </div>
-              <div class="detail">
-                <span class="label">Vent</span>
-                <span class="value">{{weatherData.wind?.speed}} km/h</span>
-              </div>
-            </div>
-          </div>
-          <ng-template #loadingWeather>
-            <div class="widget-loading">
-              <i class="fas fa-spinner fa-spin"></i>
-              <span>Chargement des données météo...</span>
-            </div>
-          </ng-template>
-        </div>
 
-        <!-- Widget taux de change -->
-        <div class="widget exchange-widget">
-          <div class="widget-header">
-            <h3><i class="fas fa-exchange-alt"></i> Taux de change</h3>
-          </div>
-          <div class="widget-content" *ngIf="exchangeRates; else loadingExchange">
-            <div class="exchange-rate">
-              <span class="currency">1 TND = {{exchangeRates.rates?.EUR}} EUR</span>
-            </div>
-            <div class="exchange-rate">
-              <span class="currency">1 TND = {{exchangeRates.rates?.USD}} USD</span>
-            </div>
-            <div class="exchange-rate">
-              <span class="currency">1 TND = {{exchangeRates.rates?.GBP}} GBP</span>
-            </div>
-          </div>
-          <ng-template #loadingExchange>
-            <div class="widget-loading">
-              <i class="fas fa-spinner fa-spin"></i>
-              <span>Chargement des taux de change...</span>
-            </div>
-          </ng-template>
-        </div>
-      </div>
+
 
       <!-- Accès rapides -->
       <div class="quick-access">
@@ -426,40 +338,7 @@
     </div>
   </div>
 
-  <!-- ========== SECTION ANALYSE SECTORIELLE ========== -->
-  <div class="sectorielles-section">
-    <h3 class="section-title">
-      <i class="fas fa-chart-pie"></i> Analyse Sectorielle
-    </h3>
 
-    <div class="sectorielles-grid">
-      <!-- Performance par famille -->
-      <div class="sectorielles-widget">
-        <h4>Performance par famille d'articles</h4>
-        <div class="famille-list" *ngIf="sectoriellesData.performanceParFamille.length > 0">
-          <div class="famille-item" *ngFor="let famille of sectoriellesData.performanceParFamille.slice(0, 5)">
-            <span class="famille-name">{{famille.designation}}</span>
-            <span class="famille-usage">{{famille.nombreUtilisations}} utilisations</span>
-            <span class="famille-prix">{{formatCurrency(famille.prixMoyen)}} moy.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Répartition par secteur -->
-      <div class="sectorielles-widget">
-        <h4>Répartition par secteur économique</h4>
-        <div class="secteur-list" *ngIf="sectoriellesData.repartitionParSecteur.length > 0">
-          <div class="secteur-item" *ngFor="let secteur of sectoriellesData.repartitionParSecteur.slice(0, 5)">
-            <span class="secteur-name">{{secteur.designation}}</span>
-            <div class="secteur-stats">
-              <span class="secteur-marches">{{secteur.nombreMarches}} marchés</span>
-              <span class="secteur-articles">{{secteur.nombreArticles}} articles</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Pied de page -->
   <div class="dashboard-footer">

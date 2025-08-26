@@ -2,6 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Client, IMessage, Frame } from '@stomp/stompjs';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+declare global {
+  interface Window { SockJS: any }
+}
+
 import * as SockJS from 'sockjs-client';
 import { environment } from 'src/environnement';
 
@@ -11,7 +15,7 @@ import { environment } from 'src/environnement';
 export class ChatService {
   private client: Client;
   private apiUrl = `${environment.apiUrl}/chat`;
-  private wsUrl = `${environment.websocketUrl}`;
+  private wsUrl = `${environment.websocketUrl}`; // e.g. http://localhost:8080/ws
   private messagesSubject = new Subject<any>();
   private notificationSubject = new Subject<any>();
   private listeners: Array<(message: any) => void> = [];

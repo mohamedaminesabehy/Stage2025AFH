@@ -175,52 +175,9 @@ export class DashboardWidgetsService {
     const alertes: DashboardAlert[] = [];
 
     // Alertes pour les garanties arrivant à échéance
-    if (widgetsData.garanties.garantiesEcheance > 0) {
-      alertes.push({
-        id: 'garanties-echeance',
-        type: 'warning',
-        title: 'Garanties arrivant à échéance',
-        message: `${widgetsData.garanties.garantiesEcheance} garantie(s) arrivent à échéance dans les 30 prochains jours`,
-        timestamp: new Date(),
-        priority: 'high'
-      });
-    }
-
-    // Alertes pour les étapes en retard
-    if (widgetsData.etapes.etapesEnRetard > 0) {
-      alertes.push({
-        id: 'etapes-retard',
-        type: 'error',
-        title: 'Étapes en retard',
-        message: `${widgetsData.etapes.etapesEnRetard} étape(s) sont en retard`,
-        timestamp: new Date(),
-        priority: 'high'
-      });
-    }
-
-    // Alertes pour les décomptes en attente
-    if (widgetsData.decomptes.decomptesEnAttente > 10) {
-      alertes.push({
-        id: 'decomptes-attente',
-        type: 'warning',
-        title: 'Décomptes en attente',
-        message: `${widgetsData.decomptes.decomptesEnAttente} décompte(s) en attente de validation`,
-        timestamp: new Date(),
-        priority: 'medium'
-      });
-    }
-
-    // Alertes pour les retards de paiement
-    if (widgetsData.decomptes.retardsPaiement > 0) {
-      alertes.push({
-        id: 'retards-paiement',
-        type: 'error',
-        title: 'Retards de paiement',
-        message: `${widgetsData.decomptes.retardsPaiement} paiement(s) en retard`,
-        timestamp: new Date(),
-        priority: 'high'
-      });
-    }
+    // (Désactivé) Alertes textuelles détaillées sur le dashboard
+    // L'UI ne doit plus afficher ces messages selon la demande.
+    // Si besoin futur: activer en fonction d'un feature flag.
 
     this.alertesSubject.next(alertes);
     return alertes;
