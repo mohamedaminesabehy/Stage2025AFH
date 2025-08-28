@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.controller;
 
 import com.afh.gescomp.model.secondary.ERole;
@@ -31,3 +32,4 @@ public class RoleController {
         return ResponseEntity.ok(roleNames);
     }
 }
+*/

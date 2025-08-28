@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.utils;
 
 import com.afh.gescomp.model.secondary.ERole;
@@ -15,3 +16,4 @@ public class EnumConverter  implements Converter<String, ERole> {
         }
     }
 }
+*/

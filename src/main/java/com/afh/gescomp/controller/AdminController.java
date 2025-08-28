@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.controller;
 
 import com.afh.gescomp.model.secondary.ERole;
@@ -24,3 +25,4 @@ public class AdminController {
         return ResponseEntity.ok("Role added to user");
     }
 }
+*/

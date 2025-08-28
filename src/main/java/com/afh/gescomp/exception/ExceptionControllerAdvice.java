@@ -11,6 +11,7 @@ public class ExceptionControllerAdvice {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        // Log l'erreur si nécessaire
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

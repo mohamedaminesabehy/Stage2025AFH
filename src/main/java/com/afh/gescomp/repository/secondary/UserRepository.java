@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.repository.secondary;
 
 import com.afh.gescomp.model.secondary.User;
@@ -18,3 +19,4 @@ public interface UserRepository  extends JpaRepository<User, Long> {
 
     Boolean existsByImmatricule(Long immatricule);
 }
+*/

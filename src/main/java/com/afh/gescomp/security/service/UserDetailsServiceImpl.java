@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.security.service;
 
 import com.afh.gescomp.model.secondary.User;
@@ -31,3 +32,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		return UserDetailsImpl.build(user);
 	}
 	}
+*/

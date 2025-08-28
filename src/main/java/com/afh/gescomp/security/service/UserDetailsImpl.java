@@ -1,11 +1,11 @@
+/*
 package com.afh.gescomp.security.service;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import com.afh.gescomp.model.secondary.User;
+//import com.afh.gescomp.model.secondary.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,7 +38,8 @@ public class UserDetailsImpl implements UserDetails {
 		this.authorities = authorities;
 	}
 
-	public static UserDetailsImpl build(User user) {
+*/
+/*	public static UserDetailsImpl build(User user) {
 		List<GrantedAuthority> authorities = user.getRoles().stream()
 				.map(role -> new SimpleGrantedAuthority(role.getName().name()))
 				.collect(Collectors.toList());
@@ -46,11 +47,12 @@ public class UserDetailsImpl implements UserDetails {
 		return new UserDetailsImpl(
 				user.getId(),
 				user.getImmatricule(),
-				user.getUsername(), 
+				user.getUsername(),
 				user.getEmail(),
-				user.getPassword(), 
+				user.getPassword(),
 				authorities);
-	}
+	}*//*
+
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -107,3 +109,4 @@ public class UserDetailsImpl implements UserDetails {
 		return Objects.equals(immatricule, user.immatricule);
 	}
 }
+*/

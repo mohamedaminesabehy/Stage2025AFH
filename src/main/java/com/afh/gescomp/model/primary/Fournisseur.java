@@ -1,7 +1,7 @@
 package com.afh.gescomp.model.primary;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
@@ -56,8 +56,8 @@ public class Fournisseur implements Serializable {
     private String finFourn;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fournisseur_seq")
-    @SequenceGenerator(name = "fournisseur_seq", sequenceName = "FOURNISSEUR_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FOURNISSEUR_id_gen")
+    @SequenceGenerator(name = "FOURNISSEUR_id_gen", sequenceName = "FOURNISSEUR_SEQ", allocationSize = 1)
     @Column(name = "ID_FOURN", nullable = false)
     public Long getId() {
         return id;

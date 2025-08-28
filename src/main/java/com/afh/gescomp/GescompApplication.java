@@ -1,36 +1,30 @@
 package com.afh.gescomp;
 
-import com.afh.gescomp.model.secondary.ERole;
-import com.afh.gescomp.model.secondary.Role;
-import com.afh.gescomp.repository.secondary.RoleRepository;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.web.WebApplicationInitializer;
 
-import java.util.Base64;
+import java.util.TimeZone;
 
 
 @SpringBootApplication
-public class GescompApplication extends SpringBootServletInitializer {
+public class GescompApplication extends SpringBootServletInitializer implements WebApplicationInitializer{
+
+
 
 	public static void main(String[] args) {
-
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 		SpringApplication.run(GescompApplication.class, args);
 	}
-
-	@Autowired
-	private RoleRepository roleRepository;
-
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(GescompApplication.class);
 	}
+
+	/*@Autowired
+	private RoleRepository roleRepository;
 
 	@Bean
 	public CommandLineRunner loadData() {
@@ -44,7 +38,7 @@ public class GescompApplication extends SpringBootServletInitializer {
 
 			for (ERole roleName : roles) {
 				// Check if the role already exists
-				if (roleRepository.findByName(roleName).isEmpty()) {
+				if (!roleRepository.findByName(roleName).isPresent()) {
 					// Create and save the role if it does not exist
 					Role role = new Role();
 					role.setName(roleName);
@@ -54,7 +48,7 @@ public class GescompApplication extends SpringBootServletInitializer {
 		};
 
 
-	}
+	}*/
 
 
 }

@@ -1,0 +1,5 @@
+-d
+target\\classes
+-cp
+target\\classes;lib\\itext-pdfa-5.5.13.3.jar;lib\\itextpdf-5.5.13.3.jar
+src\\main\\java\\com\\afh\\gescomp\\implementation\\StatistiquesServiceImpl.java

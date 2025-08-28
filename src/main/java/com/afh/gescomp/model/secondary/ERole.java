@@ -1,3 +1,4 @@
+/*
 package com.afh.gescomp.model.secondary;
 
 public enum ERole {
@@ -6,3 +7,4 @@ public enum ERole {
     ROLE_MODERATOR,
     ROLE_ADMIN
 }
+*/

@@ -1,11 +1,14 @@
 package com.afh.gescomp.payload.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.afh.gescomp.model.primary.PrmStructure;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
 
 import java.util.Set;
 
@@ -13,23 +16,10 @@ import java.util.Set;
 @Getter
 @Setter
 public class SignupRequest {
-
-    @NotNull
-    private Long immatricule;
-
-    @NotBlank
-    @Size(min = 3, max = 20)
-    private String username;
- 
-    @NotBlank
-    @Size(max = 50)
-    @Email
-    private String email;
-    
-    private Set<String> role;
-    
-    @NotBlank
-    @Size(min = 6, max = 40)
+    private Long matricule;
+    private String nom;
+    private String prenom;
+    private PrmStructure prmStructure;
     private String password;
 
 }
