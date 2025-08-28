@@ -24,11 +24,11 @@
         <i class="fas fa-handshake"></i>
       </div>
       <div class="metric-content">
-        <div class="metric-value">0</div>
+        <div class="metric-value">{{ marchesCount | number }}</div>
         <div class="metric-label french-text">Marchés Actifs</div>
-        <div class="metric-trend" [ngClass]="getTendanceClass(0)">
-          <i class="fas" [ngClass]="getTendanceIcon(0)"></i>
-          0%
+        <div class="metric-trend" [ngClass]="getTendanceClass(marchesTendance)">
+          <i class="fas" [ngClass]="getTendanceIcon(marchesTendance)"></i>
+          {{ marchesTendance | number:'1.1-1' }}%
         </div>
       </div>
       <div class="metric-chart">
@@ -229,15 +229,15 @@
         <div class="chart-insights">
           <div class="insight-item">
             <i class="fas fa-trending-up"></i>
-            <span>Croissance de 15% ce mois</span>
+            <span>Croissance: {{ marchesTendance | number:'1.0-1' }}%</span>
           </div>
           <div class="insight-item">
             <i class="fas fa-calendar-check"></i>
-            <span>0 marchés en cours</span>
+            <span>{{ marchesActifsCount }} marchés en cours</span>
           </div>
           <div class="insight-item">
             <i class="fas fa-clock"></i>
-            <span>Délai moyen: 12 jours</span>
+            <span>Délai moyen: {{ marchesDelaiMoyenDays }} jours</span>
           </div>
         </div>
       </div>
@@ -262,18 +262,7 @@
           </canvas>
         </div>
         <div class="chart-card-footer">
-          <div class="chart-legend-custom">
-            <div class="legend-item">
-              <span class="legend-color" style="background-color: #667eea"></span>
-              <span class="legend-label">STE BOUZGUENDA</span>
-              <span class="legend-value">35%</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background-color: #764ba2"></span>
-              <span class="legend-label">MEDIBAT</span>
-              <span class="legend-value">25%</span>
-            </div>
-          </div>
+          
         </div>
       </div>
 
@@ -324,22 +313,7 @@
           </canvas>
         </div>
         <div class="chart-card-footer">
-          <div class="sector-distribution">
-            <div class="sector-item">
-              <span class="sector-name">GAZ</span>
-              <div class="sector-bar">
-                <div class="sector-fill" style="width: 45%"></div>
-              </div>
-              <span class="sector-percentage">45%</span>
-            </div>
-            <div class="sector-item">
-              <span class="sector-name">EAU</span>
-              <div class="sector-bar">
-                <div class="sector-fill" style="width: 30%"></div>
-              </div>
-              <span class="sector-percentage">30%</span>
-            </div>
-          </div>
+          
         </div>
       </div>
 
@@ -594,16 +568,7 @@
           </div>
         </div>
 
-        <!-- Informations Banque -->
-        <div class="info-section">
-          <h4><i class="fas fa-university"></i> Banque</h4>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Nom</label>
-              <span>{{ selectedMarche.banque }}</span>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <div class="modal-footer">
@@ -734,34 +699,7 @@
   <!-- Onglet Fournisseurs -->
   <div class="tab-content" *ngIf="activeTab === 'fournisseurs'">
     <div class="statistics-grid">
-      <!-- Métriques Fournisseurs -->
-      <div class="stat-card metrics-card">
-        <div class="stat-header">
-          <h3><i class="fas fa-building"></i> Métriques Fournisseurs</h3>
-        </div>
-        <div class="stat-content">
-          <div class="metric-row">
-            <span class="metric-label">Total Fournisseurs:</span>
-            <span class="metric-value">{{metriquesGlobales?.totalFournisseurs || 0}}</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Actifs:</span>
-            <span class="metric-value">{{statistiquesFournisseurs?.fournisseursStatut?.actif || 0}}</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Suspendus:</span>
-            <span class="metric-value">{{statistiquesFournisseurs?.fournisseursStatut?.suspendu || 0}}</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Blacklistés:</span>
-            <span class="metric-value">{{statistiquesFournisseurs?.fournisseursStatut?.blackliste || 0}}</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Avec Pénalités:</span>
-            <span class="metric-value">{{statistiquesFournisseurs?.fournisseursPenalites?.avecPenalites || 0}}</span>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Graphique Fournisseurs par Région -->
       <div class="chart-card region-chart">
@@ -1032,42 +970,6 @@
               <span class="info-label"><i class="fas fa-map-marker-alt"></i> Adresse:</span>
               <span class="info-value">{{ selectedFournisseur?.adresse || 'Non disponible' }}</span>
             </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-city"></i> Ville:</span>
-              <span class="info-value">{{ selectedFournisseur?.ville || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-phone"></i> Téléphone:</span>
-              <span class="info-value">{{ selectedFournisseur?.telephone || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-fax"></i> Fax:</span>
-              <span class="info-value">{{ selectedFournisseur?.fax || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-envelope"></i> Email:</span>
-              <span class="info-value">{{ selectedFournisseur?.email || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-globe"></i> Site Web:</span>
-              <span class="info-value">{{ selectedFournisseur?.web || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-briefcase"></i> Activité:</span>
-              <span class="info-value">{{ selectedFournisseur?.activite || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-file-contract"></i> RCS:</span>
-              <span class="info-value">{{ selectedFournisseur?.rcs || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-id-badge"></i> Matricule CNSS:</span>
-              <span class="info-value">{{ selectedFournisseur?.matCnss || 'Non disponible' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label"><i class="fas fa-user"></i> Contact:</span>
-              <span class="info-value">{{ selectedFournisseur?.contact || 'Non disponible' }}</span>
-            </div>
           </div>
         </div>
         
@@ -1081,24 +983,25 @@
         </div>
         
         <div class="marches-list" *ngIf="selectedFournisseurMarches && selectedFournisseurMarches.length > 0">
-          <div class="marche-item" *ngFor="let marche of selectedFournisseurMarches">
+          <div class="marche-item" *ngFor="let marche of selectedFournisseurMarches; trackBy: trackByMarche">
             <div class="marche-header">
-              <span class="marche-designation">{{ marche.designation || 'Sans titre' }}</span>
-              <span class="marche-statut" [ngClass]="marche.statut ? 'status-' + marche.statut.toLowerCase() : 'status-unknown'">
-                {{ marche.statut || 'Non défini' }}
-              </span>
+              <div class="marche-title">
+                <i class="fas fa-handshake marche-icon"></i>
+                <span class="marche-designation">{{ marche.designation }}</span>
+              </div>
             </div>
+            
             <div class="marche-details">
               <div class="marche-detail">
-                <span class="detail-label">Numéro:</span>
+                <span class="detail-label"><i class="fas fa-hashtag"></i> Numéro:</span>
                 <span class="detail-value">{{ marche.numero || 'Non disponible' }}</span>
               </div>
               <div class="marche-detail">
-                <span class="detail-label">Date:</span>
+                <span class="detail-label"><i class="fas fa-calendar"></i> Date:</span>
                 <span class="detail-value">{{ marche.date ? (marche.date | date:'dd/MM/yyyy') : 'Non disponible' }}</span>
               </div>
               <div class="marche-detail">
-                <span class="detail-label">Montant:</span>
+                <span class="detail-label"><i class="fas fa-euro-sign"></i> Montant:</span>
                 <span class="detail-value">{{ marche.montant ? (marche.montant | number:'1.0-0') + ' TND' : 'Non disponible' }}</span>
               </div>
             </div>

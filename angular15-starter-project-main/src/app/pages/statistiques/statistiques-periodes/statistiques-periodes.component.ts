@@ -76,6 +76,7 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
   // Add missing count properties
   fournisseursCount = 0;
   articlesCount = 0;
+  marchesCount = 0;
 
   // Nouvelles propriétés pour l'interface améliorée
   chartType: any = 'line';
@@ -140,6 +141,11 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
   fournisseursTendance = 0;
   articlesTendance = 0;
   valeurTotaleTendance = 0;
+  
+  // Nouveaux indicateurs marchés
+  marchesTotal = 0;
+  marchesActifsCount = 0;
+  marchesDelaiMoyenDays = 0;
   
   // Configuration des mini-graphiques
   miniChartOptions: ChartConfiguration<'line'>['options'] = {
@@ -519,6 +525,7 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
         this.fournisseursCount = res?.fournisseurs || 0;
         this.articlesCount = res?.articles || 0;
         this.valeurTotale = res?.valeurTotale || 0;
+        this.marchesCount = res?.marchesActifs || 0;
         
         // Récupérer les tendances des métriques
         this.marchesTendance = res?.tendanceMarchés || 0;
@@ -1353,18 +1360,6 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
   // Méthodes supprimées - versions améliorées disponibles plus bas
 
   /**
-   * Obtient la classe CSS pour le statut d'un marché
-   */
-  getMarcheStatusClass(statut: string): string {
-    switch (statut.toLowerCase()) {
-      case 'en cours': return 'status-en-cours';
-      case 'terminé': return 'status-termine';
-      case 'suspendu': return 'status-suspendu';
-      default: return 'status-default';
-    }
-  }
-
-  /**
    * Formate une date pour l'affichage
    */
   formatDate(date: Date): string {
@@ -1436,6 +1431,12 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
       }]
     };
     
+    // Mettre à jour les métriques dynamiques liées aux marchés
+    this.marchesTotal = (Array.isArray(data.data) ? data.data : []).reduce((a: number, b: number) => a + (Number(b) || 0), 0);
+    this.marchesTendance = typeof data.growthPercent === 'number' ? data.growthPercent : this.marchesTendance;
+    this.marchesActifsCount = typeof data.activeCount === 'number' ? data.activeCount : this.marchesActifsCount;
+    this.marchesDelaiMoyenDays = typeof data.avgDelayDays === 'number' ? Math.round(data.avgDelayDays) : this.marchesDelaiMoyenDays;
+    
     // Mettre à jour les options du graphique avec le titre incluant la période
     this.lineChartOptions = {
       ...(this.lineChartOptions || {}),
@@ -1460,31 +1461,46 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
   updateFournisseurRepartitionChart(data: any): void {
     console.log('🔄 Mise à jour du graphique fournisseurs:', data);
     
-    // Gestion de la nouvelle structure de données avec 'repartition'
+    const palette = ['#667eea', '#764ba2', '#e74c3c', '#1abc9c', '#f39c12', '#9b59b6', '#2ecc71'];
+    const MAX_SLICES = 7;
+
+    const formatTopWithOthers = (labelsArr: string[], valuesArr: number[]) => {
+      const pairs = labelsArr.map((l, i) => ({ label: l, value: Number(valuesArr[i] || 0) }));
+      pairs.sort((a, b) => b.value - a.value);
+      let top = pairs.slice(0, MAX_SLICES);
+      if (pairs.length > MAX_SLICES) {
+        const othersTotal = pairs.slice(MAX_SLICES).reduce((a, p) => a + p.value, 0);
+        top = [...top, { label: 'Autres', value: othersTotal }];
+      }
+      const total = top.reduce((a, p) => a + p.value, 0) || 1;
+      const labelsFull = top.map(p => p.label);
+      const labels = top.map(p => `${this.truncateLabel(p.label)} (${Math.round((p.value / total) * 100)}%)`);
+      const values = top.map(p => p.value);
+      return { labels, labelsFull, values };
+    };
+    
+    const buildChart = (labelsRaw: string[], values: number[]) => {
+      const { labels, labelsFull, values: vals } = formatTopWithOthers(labelsRaw, values);
+      this.fournisseurLabelsFull = labelsFull;
+      this.fournisseurRepartitionChart = {
+        labels,
+        datasets: [{
+          data: vals,
+          backgroundColor: palette
+        }]
+      };
+    };
+    
     if (data && data.repartition && Array.isArray(data.repartition) && data.repartition.length > 0) {
-      const labels = data.repartition.map((item: any) => item.fournisseur || item.label || 'Inconnu');
+      const labelsRaw = data.repartition.map((item: any) => item.fournisseur || item.label || 'Inconnu');
       const values = data.repartition.map((item: any) => item.nombre_marches || item.data || 0);
-      
-      this.fournisseurRepartitionChart = {
-        labels: labels,
-        datasets: [{
-          data: values,
-          backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e']
-        }]
-      };
-      
-      console.log('✅ Graphique fournisseurs mis à jour avec nouvelle structure:', this.fournisseurRepartitionChart);
+      buildChart(labelsRaw, values);
+      console.log('✅ Graphique fournisseurs mis à jour (nouvelle structure):', this.fournisseurRepartitionChart);
     } else if (data && data.labels && data.data && data.labels.length > 0) {
-      // Gestion de l'ancienne structure de données
-      this.fournisseurRepartitionChart = {
-        labels: data.labels,
-        datasets: [{
-          data: data.data,
-          backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e']
-        }]
-      };
-      
-      console.log('✅ Graphique fournisseurs mis à jour avec ancienne structure:', this.fournisseurRepartitionChart);
+      const labelsRaw = data.labels || [];
+      const values = (data.data || []).map((v: any) => Number(v || 0));
+      buildChart(labelsRaw, values);
+      console.log('✅ Graphique fournisseurs mis à jour (ancienne structure):', this.fournisseurRepartitionChart);
     } else {
       console.warn('⚠️ Données fournisseurs invalides ou vides:', data);
     }
@@ -1536,25 +1552,29 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
     
     // Gestion de la nouvelle structure de données avec 'repartition'
     if (data && data.repartition && Array.isArray(data.repartition) && data.repartition.length > 0) {
-      const labels = data.repartition.map((item: any) => item.secteur || item.label || 'Inconnu');
+      const labelsRaw = data.repartition.map((item: any) => item.secteur || item.label || 'Inconnu');
       const values = data.repartition.map((item: any) => item.nombre_articles || item.data || 0);
+      const total = values.reduce((a: number, b: number) => a + (Number(b) || 0), 0) || 1;
+      const labels = labelsRaw.map((l: string, i: number) => `${l} (${Math.round((values[i] / total) * 100)}%)`);
       
       this.articleRepartitionChart = {
         labels: labels,
         datasets: [{
           data: values,
-          backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e']
+          backgroundColor: ['#667eea', '#764ba2', '#e74c3c', '#1abc9c', '#f39c12', '#9b59b6', '#2ecc71']
         }]
       };
       
       console.log('✅ Graphique articles mis à jour avec nouvelle structure:', this.articleRepartitionChart);
     } else if (data && data.labels && data.data && data.labels.length > 0) {
       // Gestion de l'ancienne structure de données
+      const total = (data.data || []).reduce((a: number, b: number) => a + (Number(b) || 0), 0) || 1;
+      const labels = (data.labels || []).map((l: string, i: number) => `${l} (${Math.round(((data.data[i] || 0) / total) * 100)}%)`);
       this.articleRepartitionChart = {
-        labels: data.labels,
+        labels: labels,
         datasets: [{
           data: data.data,
-          backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e']
+          backgroundColor: ['#667eea', '#764ba2', '#e74c3c', '#1abc9c', '#f39c12', '#9b59b6', '#2ecc71']
         }]
       };
       
@@ -2568,30 +2588,43 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
    * @param fournisseur Le fournisseur sélectionné
    */
   showFournisseurDetails(fournisseur: any): void {
+    console.log('🔍 Affichage des détails du fournisseur:', fournisseur);
+    
     // Récupérer les informations complètes du fournisseur depuis l'entité
     this.statistiquesService.getFournisseurComplet(fournisseur.numFourn).subscribe({
       next: (response) => {
         if (response.success && response.fournisseur) {
           this.selectedFournisseur = response.fournisseur;
-    // Récupérer la liste des marchés du fournisseur
-    this.marcheService.getMarchesByFournisseur(fournisseur.numFourn).subscribe(
-      (marches) => {
-        this.selectedFournisseurMarches = marches;
-      },
-      (error) => {
-        console.error('Erreur lors de la récupération des marchés du fournisseur:', error);
-        this.selectedFournisseurMarches = [];
-      }
-    );
+          console.log('✅ Fournisseur complet récupéré:', this.selectedFournisseur);
+          
+          // Récupérer la liste des marchés du fournisseur
+          this.marcheService.getMarchesByFournisseur(fournisseur.numFourn).subscribe(
+            (marches) => {
+              console.log('📋 Marchés du fournisseur récupérés:', marches);
+              
+              this.selectedFournisseurMarches = (marches || []).map((m: any) => ({
+                numero: m.numMarche || m.id || m.numero,
+                designation: m.designation || m.designationMarche || 'Marché sans désignation',
+                date: m.dateMarche || m.date || m.dateCreation,
+                montant: m.mntMarche || m.montant || m.montantMarche
+              }));
+              
+              console.log('✅ Marchés mappés avec succès:', this.selectedFournisseurMarches);
+            },
+            (error) => {
+              console.error('❌ Erreur lors de la récupération des marchés du fournisseur:', error);
+              this.selectedFournisseurMarches = [];
+            }
+          );
         } else {
-          console.error('Erreur lors de la récupération du fournisseur:', response.error);
+          console.error('❌ Erreur lors de la récupération du fournisseur:', response.error);
           // Utiliser les données de base si la récupération complète échoue
           this.selectedFournisseur = fournisseur;
           this.selectedFournisseurMarches = [];
         }
       },
       error: (error) => {
-        console.error('Erreur lors de la récupération du fournisseur complet:', error);
+        console.error('❌ Erreur lors de la récupération du fournisseur complet:', error);
         // Utiliser les données de base si la récupération échoue
         this.selectedFournisseur = fournisseur;
         this.selectedFournisseurMarches = [];
@@ -2613,6 +2646,18 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
       this.selectedFournisseur = null;
       this.selectedFournisseurMarches = [];
     }
+  }
+
+
+
+  /**
+   * Fonction de tracking pour optimiser les performances de la liste des marchés
+   * @param index Index de l'élément
+   * @param marche L'objet marché
+   * @returns Identifiant unique du marché
+   */
+  trackByMarche(index: number, marche: any): any {
+    return marche.numero || index;
   }
 
   /**
@@ -2807,4 +2852,13 @@ export class StatistiquesPeriodesComponent implements OnInit, AfterViewInit {
     // Charger les données de base
     this.loadBasicData();
   }
+
+  private truncateLabel(label: string, max: number = 18): string {
+    if (!label) { return ''; }
+    const clean = label.trim();
+    return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
+  }
+
+  // Libellés complets et valeurs pour fournisseurs (pour tooltips)
+  fournisseurLabelsFull: string[] = [];
   }
