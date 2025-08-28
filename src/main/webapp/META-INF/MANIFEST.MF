@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Created-By: IntelliJ IDEA
-Built-By: 62278
-Build-Jdk: Oracle OpenJDK 1.8.0_202
-Implementation-Title: ACHAT
-Implementation-Version: 0.0.1-SNAPSHOT
-Implementation-Vendor-Id: com.AFH
-Main-Class: ${start-class}
-
