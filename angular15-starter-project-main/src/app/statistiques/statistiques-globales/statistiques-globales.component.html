@@ -1,0 +1,318 @@
+<div class="statistiques-container" [@fadeIn]>
+  <!-- Header avec contrôles -->
+  <div class="header-section" [@slideInUp]>
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">analytics</mat-icon>
+          Statistiques Globales
+        </h1>
+        <p class="page-subtitle">Tableau de bord analytique avancé</p>
+      </div>
+      
+      <div class="controls-section">
+        <!-- Boutons d'action -->
+        <div class="action-buttons">
+          <button mat-icon-button
+                  [disabled]="isRefreshing"
+                  (click)="refreshData()"
+                  matTooltip="Actualiser">
+            <mat-icon [class.spinning]="isRefreshing">refresh</mat-icon>
+          </button>
+
+          <button mat-button [matMenuTriggerFor]="exportMenu" class="export-btn">
+            <mat-icon>download</mat-icon>
+            Exporter
+          </button>
+          <mat-menu #exportMenu="matMenu">
+            <button mat-menu-item (click)="exportData('pdf')">
+              <mat-icon>picture_as_pdf</mat-icon>
+              PDF
+            </button>
+            <button mat-menu-item (click)="exportData('excel')">
+              <mat-icon>table_chart</mat-icon>
+              Excel
+            </button>
+            <button mat-menu-item (click)="exportData('csv')">
+              <mat-icon>description</mat-icon>
+              CSV
+            </button>
+          </mat-menu>
+
+          <!-- Panel de notifications -->
+          <app-notifications-panel></app-notifications-panel>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informations externes -->
+    <div class="external-info" *ngIf="tauxChange.length > 0 || donneesMeteo">
+      <div class="info-cards">
+        <!-- Taux de change -->
+        <div class="info-card exchange-rates" *ngIf="tauxChange.length > 0">
+          <div class="card-header">
+            <mat-icon>currency_exchange</mat-icon>
+            <span>Taux de Change</span>
+          </div>
+          <div class="rates-list">
+            <div class="rate-item" *ngFor="let taux of tauxChange">
+              <span class="currency">{{taux.devise}}</span>
+              <span class="value">{{taux.taux | number:'1.3-3'}}</span>
+              <span class="variation" [ngClass]="getVariationColor(taux.variation)">
+                <mat-icon>{{getVariationIcon(taux.variation)}}</mat-icon>
+                {{taux.variation | number:'1.2-2'}}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Météo -->
+        <div class="info-card weather" *ngIf="donneesMeteo">
+          <div class="card-header">
+            <mat-icon>wb_sunny</mat-icon>
+            <span>{{donneesMeteo.ville}}</span>
+          </div>
+          <div class="weather-content">
+            <div class="temperature">{{donneesMeteo.temperature}}°C</div>
+            <div class="description">{{donneesMeteo.description}}</div>
+            <div class="humidity">Humidité: {{donneesMeteo.humidite}}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Filtres avancés -->
+  <app-advanced-filters
+    [initialFilters]="filtres"
+    (filtersChange)="onFiltersChange($event)"
+    (resetFilters)="onResetFilters()">
+  </app-advanced-filters>
+
+  <!-- Widget de données externes -->
+  <div class="external-data-section" *ngIf="!isLoading">
+    <app-external-data-widget></app-external-data-widget>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="main-content" *ngIf="!isLoading && statistiques" [@scaleIn]>
+    
+    <!-- Navigation par onglets -->
+    <mat-tab-group [(selectedIndex)]="selectedView" class="view-tabs">
+      <mat-tab *ngFor="let view of viewOptions" [label]="view.label">
+        <ng-template mat-tab-label>
+          <mat-icon>{{view.icon}}</mat-icon>
+          {{view.label}}
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- Cartes de métriques principales -->
+    <div class="metrics-grid" [@slideInUp]>
+      <mat-card class="metric-card" *ngFor="let metric of metriquesCards" [ngClass]="metric.color">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon class="metric-icon">{{metric.icon}}</mat-icon>
+            <div class="metric-variation" [ngClass]="getVariationColor(metric.variation)">
+              <mat-icon>{{getVariationIcon(metric.variation)}}</mat-icon>
+              <span>{{metric.variation | number:'1.1-1'}}%</span>
+            </div>
+          </div>
+          <div class="metric-content">
+            <h3 class="metric-title">{{metric.title}}</h3>
+            <div class="metric-value">{{formatValue(metric.value, metric.format)}}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Vue d'ensemble -->
+    <div class="overview-section" *ngIf="selectedView === 'overview'">
+      
+      <!-- Graphiques principaux -->
+      <div class="charts-grid">
+        
+        <!-- Évolution des marchés -->
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>trending_up</mat-icon>
+              Évolution des Marchés
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container">
+              <app-marche-evolution-chart 
+                [data]="statistiques.marches.evolutionMontants"
+                [options]="chartOptions">
+              </app-marche-evolution-chart>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Répartition des fournisseurs -->
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>pie_chart</mat-icon>
+              Répartition Fournisseurs
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-container">
+              <app-fournisseur-repartition-chart 
+                [data]="statistiques.fournisseurs.repartitionParRegion"
+                [options]="chartOptions">
+              </app-fournisseur-repartition-chart>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Performance globale -->
+        <mat-card class="chart-card full-width">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>dashboard</mat-icon>
+              Indicateurs de Performance
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="performance-indicators">
+              <div class="indicator" *ngFor="let indicateur of statistiques.performance.indicateurs">
+                <div class="indicator-header">
+                  <span class="indicator-name">{{indicateur.nom}}</span>
+                  <span class="indicator-trend" [ngClass]="indicateur.tendance">
+                    <mat-icon>{{getVariationIcon(indicateur.valeur - indicateur.objectif)}}</mat-icon>
+                  </span>
+                </div>
+                <div class="indicator-progress">
+                  <mat-progress-bar 
+                    mode="determinate" 
+                    [value]="(indicateur.valeur / indicateur.objectif) * 100"
+                    [color]="indicateur.couleur">
+                  </mat-progress-bar>
+                </div>
+                <div class="indicator-values">
+                  <span class="current">{{indicateur.valeur}} {{indicateur.unite}}</span>
+                  <span class="target">/ {{indicateur.objectif}} {{indicateur.unite}}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+
+      <!-- Alertes et recommandations -->
+      <div class="alerts-recommendations">
+        
+        <!-- Alertes -->
+        <mat-card class="alerts-card" *ngIf="statistiques.performance.alertes.length > 0">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>warning</mat-icon>
+              Alertes ({{statistiques.performance.alertes.length}})
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="alerts-list">
+              <div class="alert-item" 
+                   *ngFor="let alerte of statistiques.performance.alertes" 
+                   [ngClass]="alerte.type">
+                <mat-icon class="alert-icon">
+                  {{alerte.type === 'error' ? 'error' : alerte.type === 'warning' ? 'warning' : 'info'}}
+                </mat-icon>
+                <div class="alert-content">
+                  <h4 class="alert-title">{{alerte.titre}}</h4>
+                  <p class="alert-message">{{alerte.message}}</p>
+                  <span class="alert-date">{{alerte.date | date:'short'}}</span>
+                </div>
+                <mat-chip class="priority-chip" [ngClass]="alerte.priorite">
+                  {{alerte.priorite}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Recommandations -->
+        <mat-card class="recommendations-card" *ngIf="statistiques.performance.recommandations.length > 0">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>lightbulb</mat-icon>
+              Recommandations
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="recommendations-list">
+              <div class="recommendation-item" *ngFor="let rec of statistiques.performance.recommandations">
+                <div class="recommendation-header">
+                  <h4 class="recommendation-title">{{rec.titre}}</h4>
+                  <div class="recommendation-badges">
+                    <mat-chip class="impact-chip" [ngClass]="rec.impact">
+                      Impact: {{rec.impact}}
+                    </mat-chip>
+                    <mat-chip class="effort-chip" [ngClass]="rec.effort">
+                      Effort: {{rec.effort}}
+                    </mat-chip>
+                  </div>
+                </div>
+                <p class="recommendation-description">{{rec.description}}</p>
+                <span class="recommendation-category">{{rec.categorie}}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+    </div>
+
+    <!-- Sections spécialisées -->
+    <div class="specialized-section" *ngIf="selectedView !== 'overview'">
+      
+      <!-- Section Fournisseurs -->
+      <app-fournisseur-analytics 
+        *ngIf="selectedView === 'fournisseurs'" 
+        [data]="statistiques.fournisseurs">
+      </app-fournisseur-analytics>
+
+      <!-- Section Marchés -->
+      <app-marche-analytics 
+        *ngIf="selectedView === 'marches'" 
+        [data]="statistiques.marches">
+      </app-marche-analytics>
+
+      <!-- Section Articles -->
+      <app-article-analytics 
+        *ngIf="selectedView === 'articles'" 
+        [data]="statistiques.articles">
+      </app-article-analytics>
+
+      <!-- Section Performance -->
+      <app-performance-analytics 
+        *ngIf="selectedView === 'performance'" 
+        [data]="statistiques.performance">
+      </app-performance-analytics>
+
+    </div>
+
+  </div>
+
+  <!-- Message d'erreur -->
+  <div class="error-container" *ngIf="!isLoading && !statistiques">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h3>Erreur de chargement</h3>
+    <p>Impossible de charger les statistiques. Veuillez réessayer.</p>
+    <button mat-raised-button color="primary" (click)="loadInitialData()">
+      <mat-icon>refresh</mat-icon>
+      Réessayer
+    </button>
+  </div>
+
+</div>

@@ -1,0 +1,11 @@
+{"type":"FeatureCollection",
+"features":[{"type":"Feature",
+"geometry":
+{"type":"Point",
+"coordinates":[10.189416744564227,36.8466162144358]}
+,"id":"3e928b46-9d4a-4737-ac0b-f7d8b9bd1127",
+"properties":{
+    "text":"AGENCE FONCIERE  D'HABITATION",
+    "name":"AGENCE FONCIERE  D'HABITATION",
+     "language": "fr"
+    }}]}

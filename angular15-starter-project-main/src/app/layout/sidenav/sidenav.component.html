@@ -1,0 +1,166 @@
+<div  style="width: 250px;" class="sidebar" [ngClass]="{ 'showSidebar': isSidebarVisible, 'hideSidebar': !isSidebarVisible }" [@fadeInOut]>
+  <div class="user">
+     <img src="/assets/pngfind.com-user-icon-png-2924805.png" 
+    alt="" style="width: 90px;">
+    <h4 class="name">Connecté(e) avec la matricule</h4>
+    <p class="mail">
+      <a [matTooltip]="matricule ? 'Cliquez pour voir les détails de l\'utilisateur.' : ''"
+      matTooltipPosition="left" style="color: red;" (click)="getUserDetails()" *ngIf="matricule"><h2>{{ matricule }}</h2></a>
+      <span *ngIf="!matricule">Aucun matricule</span>
+    </p>
+  </div>
+
+  <ul>
+    <li [matTooltip]="'Consulter la page d\'acceuil'" matTooltipPosition="right">
+      <a routerLink="/home" routerLinkActive="active" >
+        <span class="menu-icon material-icons">home</span>
+        <span class="menu-text">Home</span>
+      </a>
+    </li>
+    <li  [matTooltip]="adminHasAccess ? 'Consulter la page de parametrage.' : ''" matTooltipPosition="right"> 
+      <a routerLinkActive="active" (click)="toggleSubmenu('parametrage')" 
+      [class.disabled]="!adminHasAccess"
+      [attr.disabled]="!adminHasAccess ? true : null">
+        <span class="menu-icon material-icons">dashboard</span>
+        <span class="menu-text">Parametrage</span>
+        <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.parametrage }">
+          <mat-icon>{{ isSubmenuOpen.parametrage ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+        </span>
+      </a>
+      <!-- Sub-menu for Parametrage -->
+      <ul *ngIf="isSubmenuOpen.parametrage" class="sub-menu">
+        <li>
+          <a (click)="toggleSubmenu('fournisseur')" routerLinkActive="active">
+            <span class="menu-icon material-icons">person</span>
+            <span class="menu-text">Fournisseur</span>
+            <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.fournisseur }">
+              <mat-icon>{{ isSubmenuOpen.fournisseur ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+            </span>
+          </a>
+          <!-- Sub-menu for Fournisseurs -->
+          <ul *ngIf="isSubmenuOpen.fournisseur" class="sub-menu sub-menu-nested">
+            <li><a routerLink="/fournisseur" routerLinkActive="active">Paramétrage</a></li>
+            <!-- Ajoutez d'autres sous-menus pour Fournisseurs ici -->
+          </ul>
+        </li>
+        <li>
+          <a (click)="toggleSubmenu('typegarantie')" routerLinkActive="active">
+            <span class="menu-icon material-icons">verified_user</span>
+            <span class="menu-text">Type Garantie</span>
+            <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.typegarantie }">
+              <mat-icon>{{ isSubmenuOpen.typegarantie ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+            </span>
+          </a>
+          <!-- Sub-menu for Type de Garantie -->
+          <ul *ngIf="isSubmenuOpen.typegarantie" class="sub-menu sub-menu-nested">
+            <li><a routerLink="/typegarantie" routerLinkActive="active">Paramétrage</a></li>
+            <!-- Ajoutez d'autres sous-menus pour Type de Garantie ici -->
+          </ul>
+        </li>
+        <li>
+          <a (click)="toggleSubmenu('typepenalite')" routerLinkActive="active">
+            <span class="menu-icon material-icons">warning</span>
+            <span class="menu-text">Type Pénalité</span>
+            <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.typepenalite }">
+              <mat-icon>{{ isSubmenuOpen.typepenalite ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+            </span>
+          </a>
+          <!-- Sub-menu for Pénalité -->
+          <ul *ngIf="isSubmenuOpen.typepenalite" class="sub-menu sub-menu-nested">
+            <li><a routerLink="/typepenalite" routerLinkActive="active">Paramétrage</a></li>
+            <!-- Ajoutez d'autres sous-menus pour Pénalité ici -->
+          </ul>
+        </li>
+        <li>
+          <a (click)="toggleSubmenu('article')" routerLinkActive="active">
+            <span class="menu-icon material-icons">verified_user</span>
+            <span class="menu-text">Article</span>
+            <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.article }">
+              <mat-icon>{{ isSubmenuOpen.article ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+            </span>
+          </a>
+          <!-- Sub-menu for Type de article -->
+          <ul *ngIf="isSubmenuOpen.article" class="sub-menu sub-menu-nested">
+            <li><a routerLink="/article" routerLinkActive="active">Paramétrage</a></li>
+            <!-- Ajoutez d'autres sous-menus pour Type de article ici -->
+          </ul>
+        </li>
+      </ul>
+    </li>
+
+    <li [matTooltip]="'Consulter les statistiques'" matTooltipPosition="right">
+      <a (click)="toggleSubmenu('statistique')" routerLinkActive="active">
+        <span class="menu-icon material-icons">bar_chart</span>
+        <span class="menu-text">Statistiques</span>
+        <span class="sub-menu-icon" [ngClass]="{ 'sub-menu-open': isSubmenuOpen.statistique }">
+          <mat-icon>{{ isSubmenuOpen.statistique ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}</mat-icon>
+        </span>
+      </a>
+      <!-- Sous-menu Statistiques -->
+      <ul *ngIf="isSubmenuOpen.statistique" class="sub-menu sub-menu-nested">
+        <li>
+          <a routerLink="/statistiques/globales" routerLinkActive="active">
+            <span class="menu-icon material-icons">dashboard</span>
+            Tableau de Bord Global
+          </a>
+        </li>
+        <li>
+          <a routerLink="/statistiques/fournisseurs" routerLinkActive="active">
+            <span class="menu-icon material-icons">business</span>
+            Fournisseurs
+          </a>
+        </li>
+        <li>
+          <a routerLink="/statistiques/marches" routerLinkActive="active">
+            <span class="menu-icon material-icons">assignment</span>
+            Marchés
+          </a>
+        </li>
+        <li>
+          <a routerLink="/statistiques/articles" routerLinkActive="active">
+            <span class="menu-icon material-icons">inventory</span>
+            Articles
+          </a>
+        </li>
+        <li>
+          <a routerLink="/statistiques/garanties" routerLinkActive="active">
+            <span class="menu-icon material-icons">verified_user</span>
+            Garanties
+          </a>
+        </li>
+        <li>
+          <a routerLink="/statistiques/penalites" routerLinkActive="active">
+            <span class="menu-icon material-icons">warning</span>
+            Pénalités
+          </a>
+        </li>
+      </ul>
+    </li>
+    
+
+
+
+
+
+
+    <li [matTooltip]="'Consulter la liste des marchés'" matTooltipPosition="right">
+      <a routerLink="/marche" routerLinkActive="active">
+        <span class="menu-icon material-icons">add_shopping_cart</span>
+        <span class="menu-text">Marche</span>
+      </a>
+    </li>
+    <li [matTooltip]="'Consulter le formulaire de Pré-Soumission/Consultation décompte'" matTooltipPosition="right">
+      <a routerLink="/decompte" routerLinkActive="active">
+        <span class="menu-icon material-icons">attach_money</span>
+        <span class="menu-text">Decompte</span>
+      </a>
+    </li>
+    <li  [matTooltip]="'Consulter la conversation admin/utilisateur'" matTooltipPosition="right">
+      <a routerLink="/chat" routerLinkActive="active">
+        <span class="menu-icon material-icons">chat</span>
+        <span class="menu-text">Conversation</span>
+      </a>
+    </li>
+    
+  </ul>
+</div>

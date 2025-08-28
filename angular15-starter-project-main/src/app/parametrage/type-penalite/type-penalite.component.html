@@ -1,0 +1,68 @@
+<mat-toolbar color="primary">
+  <span>Liste Types de Penalites</span>
+  <span class="example-spacer"></span>
+  <button mat-raised-button (click)="openAddEditFournForm()">
+    Ajouter Type de Penalite
+  </button>
+</mat-toolbar>
+
+<p-toast position="bottom-center" key="toast" [baseZIndex]="5000"></p-toast>
+
+<div class="main-body">
+  <!-- Conteneur pour le spinner -->
+  <div class="overlay" *ngIf="(_spinnerService.spinnerCounter$ | async) > 0">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Conteneur pour les messages d'erreur -->
+  <div class="error-message" *ngIf="loadingError">
+    {{ loadingError }}
+  </div>
+
+  <mat-form-field>
+    <mat-label>Filter</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Filter" #input>
+  </mat-form-field>
+
+  <!-- Conteneur principal des filtres et du tableau -->
+  <div >
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)">
+
+      <ng-container matColumnDef="id">
+        <th  mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+        <td  mat-cell *matCellDef="let row"> {{row.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="designation">
+        <th  mat-header-cell *matHeaderCellDef mat-sort-header> Designation</th>
+        <td  mat-cell *matCellDef="let row"> {{row.designation}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef> Actions </th>
+        <td class="centered-cell" mat-cell *matCellDef="let row">
+          <ul class="list-inline m-0">
+            <li class="list-inline-item">
+              <button (click)="openEditForm(row)" class="btn btn-success btn-sm rounded-0" type="button" data-toggle="tooltip" data-placement="top" title="Edit">
+                <i class="fa fa-edit"></i>
+              </button>
+            </li>
+            <li class="list-inline-item">
+              <button (click)="openConfirmDialog(row.id)" class="btn btn-danger btn-sm rounded-0" type="button" data-toggle="tooltip" data-placement="top" title="Delete">
+                <i class="fa fa-trash"></i>
+              </button>
+            </li>
+          </ul>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+    </table>
+    
+    <mat-paginator showFirstLastButtons [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users"></mat-paginator>
+  </div>
+</div>

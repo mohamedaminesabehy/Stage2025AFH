@@ -1,0 +1,157 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+   // height: calc(100vh - 64px); /* Ajuste la hauteur pour tenir compte de la barre d'outils */
+   height: 100vh; 
+   padding: 16px;
+   transform: scale(0.8);
+  }
+  
+  .agency-card {
+    max-width: 2000px;
+    margin: 24px auto;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .main-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #3f51b5;
+  }
+  
+  .subtitle {
+    font-size: 16px;
+    color: #666;
+  }
+  
+  .section {
+    margin: 20px 0;
+  }
+  
+  .description {
+    font-size: 16px;
+    color: #444;
+    line-height: 1.6;
+  }
+  
+  .info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+  }
+  
+  .map {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  a {
+    color: #3f51b5;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  
+  mat-icon {
+    margin-right: 8px;
+  }
+  
+  mat-divider {
+    margin: 16px 0;
+  }
+  
+  @media (max-width: 600px) {
+    .container {
+      padding: 8px;
+    }
+  }
+
+  .modal {
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100vw;  /* Prendre toute la largeur de l'écran */
+    height: 100vh;  /* Prendre toute la hauteur de l'écran */
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;  /* Permet de faire défiler le contenu si nécessaire */
+  }
+  
+  .modal-content {
+    background-color: #000;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100vw;  /* Largeur par défaut du modal */
+    max-width: 1651px;  /* Limiter la largeur du modal */
+    height: auto;
+    max-height: 90vh;  /* Limiter la hauteur à 90% de la fenêtre */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+  }
+  
+  /* Adapter la taille du modal pour les écrans plus petits */
+  @media (max-width: 768px) {
+    .modal-content {
+      width: 90%;  /* Augmenter la largeur du modal sur les petits écrans */
+      max-width: 90%;  /* Limiter à 90% */
+      padding: 16px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .modal-content {
+      width: 95%;  /* Sur les plus petits écrans */
+      max-width: 95%;
+      padding: 12px;
+    }
+  }
+  
+  
+  .close {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+  }
+  
+  .video-link {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .video-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 18px;
+  }
+  
+  .video-link a:hover {
+    text-decoration: underline;
+  }
+
+  

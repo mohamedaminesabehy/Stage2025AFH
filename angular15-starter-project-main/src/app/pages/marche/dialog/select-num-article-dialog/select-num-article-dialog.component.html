@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>Sélectionner un article</h2>
+
+<mat-dialog-content style="height: 400px; overflow: auto;">
+  <!-- Barre de recherche -->
+  <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 16px;">
+    <input matInput [formControl]="searchControl" placeholder="Tapez un mot-clé...">
+    <button *ngIf="searchControl.value" matSuffix mat-icon-button aria-label="Effacer" (click)="clearSearch()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <!-- Liste des articles filtrés et paginés -->
+  <mat-list>
+    <mat-list-item
+      *ngFor="let article of paginatedArticles"
+      (click)="selectArticle(article)"
+      style="cursor: pointer;">
+      <div style="display: flex; align-items: center; width: 100%; padding: 8px 0;">
+      
+        <!-- Numéro d'article -->
+        <span style="font-size: 22px; font-weight: bold; color: #3f51b5;">
+          {{ article.numArticle }}
+        </span>
+        
+        <!-- Désignation de l'article (juste après le numéro) -->
+        <span style="font-size: 22px; color: #757575; margin-left: 8px;">
+          {{ article.designationFr || article.designation }}
+        </span>
+      </div>
+        </mat-list-item>
+  </mat-list>
+
+  <!-- Pagination -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+    <!-- Premier page -->
+    <button mat-button (click)="firstPage()" [disabled]="currentPage === 0">⏮️ Première page</button>
+  
+    <!-- Précédent -->
+    <button mat-button (click)="prevPage()" [disabled]="currentPage === 0">⬅️ Précédent</button>
+  
+    <!-- Affichage de la page actuelle -->
+    <span>Page {{ currentPage + 1 }} / {{ totalPages }}</span>
+  
+    <!-- Suivant -->
+    <button mat-button (click)="nextPage()" [disabled]="(currentPage + 1) >= totalPages">Suivant ➡️</button>
+  
+    <!-- Dernière page -->
+    <button mat-button (click)="lastPage()" [disabled]="(currentPage + 1) >= totalPages">⏭️ Dernière page</button>
+  </div>
+  
+</mat-dialog-content>
+
+<mat-dialog-actions style="display: flex; justify-content: center; padding: 16px 0;">
+    <button mat-button 
+            (click)="close()" 
+            style="
+              background-color: #3f51b5; 
+              color: white; 
+              font-weight: bold; 
+              border-radius: 4px; 
+              padding: 10px 20px; 
+              transition: background-color 0.3s ease;">
+      Annuler
+    </button>
+  </mat-dialog-actions>

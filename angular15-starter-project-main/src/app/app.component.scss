@@ -1,0 +1,40 @@
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    .mat-icon {
+      vertical-align: middle;
+      margin-right: 1rem;
+    }
+  }
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
+  
+  a.title {
+    color: white;
+  }
+  
+  .footer-text {
+    font-size: small;
+    text-align: center;
+    flex: 1 1 auto;
+  }
+  
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
+  
+  a.title {
+    color: white;
+  }
+  
+  .footer-text {
+    font-size: small;
+    text-align: center;
+    flex: 1 1 auto;
+  }
+  
+
+  

@@ -1,0 +1,193 @@
+<div class="external-data-widget">
+  
+  <!-- Header avec contrôles -->
+  <div class="widget-header">
+    <h3 class="widget-title">
+      <mat-icon>public</mat-icon>
+      Données Externes
+    </h3>
+    <div class="widget-controls">
+      <button mat-icon-button 
+              (click)="refreshData()" 
+              matTooltip="Actualiser"
+              [disabled]="isLoadingTaux || isLoadingMeteo || isLoadingEconomic">
+        <mat-icon [class.spinning]="isLoadingTaux || isLoadingMeteo || isLoadingEconomic">refresh</mat-icon>
+      </button>
+      <button mat-icon-button 
+              (click)="toggleAutoRefresh()" 
+              [matTooltip]="autoRefresh ? 'Désactiver actualisation auto' : 'Activer actualisation auto'"
+              [color]="autoRefresh ? 'primary' : ''">
+        <mat-icon>{{autoRefresh ? 'sync' : 'sync_disabled'}}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Onglets pour différents types de données -->
+  <mat-tab-group [(selectedIndex)]="selectedTab" class="data-tabs">
+    
+    <!-- Onglet Taux de Change -->
+    <mat-tab label="Taux de Change">
+      <ng-template mat-tab-label>
+        <mat-icon>currency_exchange</mat-icon>
+        Devises
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loading-indicator" *ngIf="isLoadingTaux">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement des taux...</span>
+        </div>
+        
+        <div class="exchange-rates" *ngIf="!isLoadingTaux && tauxChange.length > 0">
+          <div class="rate-card" *ngFor="let taux of tauxChange">
+            <div class="rate-header">
+              <span class="currency-code">{{taux.devise}}</span>
+              <span class="rate-variation" [ngClass]="getVariationColor(taux.variation)">
+                <mat-icon>{{getVariationIcon(taux.variation)}}</mat-icon>
+                {{formatPercentage(taux.variation)}}
+              </span>
+            </div>
+            <div class="rate-value">{{taux.taux | number:'1.4-4'}}</div>
+            <div class="rate-date">{{taux.date | date:'short'}}</div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Météo -->
+    <mat-tab label="Météo">
+      <ng-template mat-tab-label>
+        <mat-icon>wb_sunny</mat-icon>
+        Météo
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loading-indicator" *ngIf="isLoadingMeteo">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement météo...</span>
+        </div>
+        
+        <div class="weather-card" *ngIf="!isLoadingMeteo && donneesMeteo">
+          <div class="weather-header">
+            <mat-icon>location_on</mat-icon>
+            <span class="city-name">{{donneesMeteo.ville}}</span>
+          </div>
+          <div class="weather-main">
+            <div class="temperature" [ngClass]="getTemperatureColor(donneesMeteo.temperature)">
+              {{donneesMeteo.temperature}}°C
+            </div>
+            <div class="weather-icon">
+              <img [src]="'https://openweathermap.org/img/w/' + donneesMeteo.icone + '.png'" 
+                   [alt]="donneesMeteo.description">
+            </div>
+          </div>
+          <div class="weather-details">
+            <div class="weather-description">{{donneesMeteo.description}}</div>
+            <div class="humidity">
+              <mat-icon>water_drop</mat-icon>
+              Humidité: {{donneesMeteo.humidite}}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Indicateurs Économiques -->
+    <mat-tab label="Économie">
+      <ng-template mat-tab-label>
+        <mat-icon>trending_up</mat-icon>
+        Économie
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loading-indicator" *ngIf="isLoadingEconomic">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement indicateurs...</span>
+        </div>
+        
+        <div class="economic-indicators" *ngIf="!isLoadingEconomic && indicateursEconomiques.length > 0">
+          <div class="indicator-card" *ngFor="let indicateur of indicateursEconomiques">
+            <div class="indicator-header">
+              <span class="indicator-name">{{indicateur.nom}}</span>
+              <span class="indicator-source">{{indicateur.source}}</span>
+            </div>
+            <div class="indicator-value">
+              {{formatNumber(indicateur.valeur)}} {{indicateur.unite}}
+            </div>
+            <div class="indicator-date">{{indicateur.date | date:'short'}}</div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Crypto-monnaies -->
+    <mat-tab label="Crypto">
+      <ng-template mat-tab-label>
+        <mat-icon>currency_bitcoin</mat-icon>
+        Crypto
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loading-indicator" *ngIf="isLoadingCrypto">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement crypto...</span>
+        </div>
+        
+        <div class="crypto-list" *ngIf="!isLoadingCrypto && cryptoData.length > 0">
+          <div class="crypto-card" *ngFor="let crypto of cryptoData">
+            <div class="crypto-header">
+              <span class="crypto-icon">{{getCryptoIcon(crypto.nom)}}</span>
+              <span class="crypto-name">{{crypto.nom | titlecase}}</span>
+            </div>
+            <div class="crypto-prices">
+              <div class="price-usd">{{formatCurrency(crypto.prixUSD, 'USD')}}</div>
+              <div class="price-eur">{{formatCurrency(crypto.prixEUR, 'EUR')}}</div>
+            </div>
+            <div class="crypto-variation" [ngClass]="getVariationColor(crypto.variation24h)">
+              <mat-icon>{{getVariationIcon(crypto.variation24h)}}</mat-icon>
+              {{formatPercentage(crypto.variation24h)}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Actualités -->
+    <mat-tab label="Actualités">
+      <ng-template mat-tab-label>
+        <mat-icon>newspaper</mat-icon>
+        News
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loading-indicator" *ngIf="isLoadingNews">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement actualités...</span>
+        </div>
+        
+        <div class="news-list" *ngIf="!isLoadingNews && actualites.length > 0">
+          <div class="news-item" 
+               *ngFor="let article of actualites" 
+               (click)="openNewsLink(article.url)">
+            <div class="news-header">
+              <h4 class="news-title">{{article.title}}</h4>
+              <span class="news-time">{{formatTimeAgo(new Date(article.publishedAt))}}</span>
+            </div>
+            <p class="news-description">{{article.description}}</p>
+            <div class="news-footer">
+              <span class="news-source">{{article.source.name}}</span>
+              <mat-icon class="external-link">open_in_new</mat-icon>
+            </div>
+          </div>
+        </div>
+        
+        <div class="no-news" *ngIf="!isLoadingNews && actualites.length === 0">
+          <mat-icon>info</mat-icon>
+          <span>Aucune actualité disponible</span>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

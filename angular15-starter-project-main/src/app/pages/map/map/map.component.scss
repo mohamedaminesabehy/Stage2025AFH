@@ -1,0 +1,34 @@
+.map-container {
+  width: 100vw;  /* Prendre toute la largeur disponible */
+  max-width: 1051px;  /* Largeur maximale */
+  height: 400px;  /* Hauteur par défaut */
+  max-height: 600px;  /* Hauteur maximale */
+  overflow: hidden; /* Cache les débordements si nécessaire */
+  border: 2px solid #1613e6; /* Bordure colorée */
+  border-radius: 8px;
+  direction: rtl;
+  margin: 0 auto; /* Centrer horizontalement */
+  transition: all 0.3s ease; /* Transition fluide lors du redimensionnement */
+}
+
+/* Centrer la carte dans le conteneur parent */
+.container {
+  display: flex;
+  justify-content: center; /* Centrer horizontalement */
+  align-items: center; /* Centrer verticalement */
+  height: 100vh; /* Assure que le conteneur occupe toute la hauteur de l'écran */
+}
+
+/* Adapter la carte pour des écrans plus petits */
+@media (max-width: 768px) {
+  .map-container {
+    height: 300px; /* Réduit la hauteur sur des écrans plus petits */
+  }
+}
+
+/* Adapter encore plus pour les petits écrans */
+@media (max-width: 480px) {
+  .map-container {
+    height: 250px; /* Encore plus petite sur les petits écrans */
+  }
+}

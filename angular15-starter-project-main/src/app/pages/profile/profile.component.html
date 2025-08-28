@@ -1,0 +1,44 @@
+<div class="container">
+  <mat-card class="profile-card">
+    <mat-card-header class="profile-card-header">
+      <div class="profile-header">
+        <h1 class="profile-title">Utilisateur connecté(e)</h1>
+      </div>
+    </mat-card-header>
+    <mat-card-content class="profile-card-content">
+      <div class="profile-content">
+        <div class="profile-image">
+          <img [src]="'https://ui-avatars.com/api/?name=' + user.nom + '+' + user.prenom + '&background=random&color=fff'" alt="User Avatar" class="avatar">
+        </div>
+        <div class="profile-details">
+          <h1 style="font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; font-size: xx-large;">Utilisateur connecté(e)</h1>
+          <h2>Utilisateur</h2>
+          <div class="profile-item">
+            <p> * Matricule: <strong>{{ user.id }}</strong></p>
+          </div>
+          <div class="profile-item">
+             <p>* Nom: <strong>{{ user.nom }}</strong></p>
+          </div>
+          <div class="profile-item">
+            <p>* Prenom: <strong>{{ user.prenom }}</strong></p>
+          </div>
+          <h2>Structure</h2>
+          <div class="profile-item">
+          <p>* Numéro Structure: <strong>{{ user.NUM_STRUCT?.numStruct ?? 'Non spécifié' }}</strong></p>
+          </div>
+          <div class="profile-item">
+            <p>* Désignation Structure: <strong>{{ user.NUM_STRUCT?.designation ?? 'Non spécifié' }}</strong></p>
+          </div>
+          <div class="profile-item">
+             <p>* Code Structure: <strong>{{ user.NUM_STRUCT?.finStrcCod ?? 'Non spécifié' }}</strong></p>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions class="profile-card-actions">
+      <div class="button-container">
+        <button mat-raised-button color="warn" class="profile-button" (click)="retourHome()">Retour</button>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>

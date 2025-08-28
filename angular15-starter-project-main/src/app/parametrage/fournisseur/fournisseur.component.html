@@ -1,0 +1,129 @@
+<mat-toolbar color="primary">
+  <span>Liste des Fournisseurs</span>
+  <span class="example-spacer"></span>
+  <button mat-raised-button (click)="openAddEditFournForm()">Ajouter Fournisseur</button>
+</mat-toolbar>
+
+<div class="main-body">
+  <!-- Conteneur pour le spinner -->
+  <div class="overlay" *ngIf="(_spinnerService.spinnerCounter$ | async) > 0">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Conteneur pour les messages d'erreur -->
+  <div class="error-message" *ngIf="loadingError">
+    {{ loadingError }}
+  </div>
+  <p-toast position="bottom-center" key="toast" [baseZIndex]="5000"></p-toast>
+  <!-- Conteneur principal des filtres et des fournisseurs -->
+  <div class="filter-container">
+    <mat-form-field>
+      <mat-label>Fournisseur </mat-label>
+      <input matInput (keyup)="applyFilterSecteurDesignation($event)" placeholder="Rechercher par Fournisseur" [(ngModel)]="fournisseurDesignation">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Rechercher par Désignation </mat-label>
+      <input matInput (keyup)="applyFilterDesignation($event)" placeholder="Rechercher par Désignation" [(ngModel)]="designation">
+    </mat-form-field>
+  </div>
+
+  <!-- Conteneur pour le tableau des fournisseurs -->
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)">
+
+      <!-- Définition des colonnes de la table -->
+      <ng-container matColumnDef="id">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef > ID </th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="numFourn">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef >N° Fournisseur</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.numFourn}} </td>
+      </ng-container>
+
+      <!-- Répétez ce modèle pour chaque colonne comme vous l'avez fait -->
+  <!--     <ng-container matColumnDef="numGouv">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Gouvernorat</th>
+        <td mat-cell *matCellDef="let row"> {{row.numGouv}} </td>
+      </ng-container> -->
+
+      <ng-container matColumnDef="designation">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef >Designation</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.designation}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="designationFr">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef >Designation francaise</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.designationFr}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="adresse">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef >Adresse</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.adresse}} </td>
+      </ng-container>
+
+<!--       <ng-container matColumnDef="ville">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Ville</th>
+        <td mat-cell *matCellDef="let row"> {{row.ville}} </td>
+      </ng-container> -->
+
+     <!--  <ng-container matColumnDef="codePostal">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Code Postal</th>
+        <td mat-cell *matCellDef="let row"> {{row.codePostal}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="activite">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Activité</th>
+        <td mat-cell *matCellDef="let row"> {{row.activite}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="rcs">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>RCS</th>
+        <td mat-cell *matCellDef="let row"> {{row.rcs}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="matCnss">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Mat CNSS</th>
+        <td mat-cell *matCellDef="let row"> {{row.matCnss}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="matriculeFisc">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Matricule Fiscale</th>
+        <td mat-cell *matCellDef="let row"> {{row.matriculeFisc}} </td>
+      </ng-container> -->
+
+      <ng-container matColumnDef="finFourn">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef >Fournisseur Financier</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row"> {{row.finFourn}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th class="centered-cell" mat-header-cell *matHeaderCellDef>Actions</th>
+        <td class="centered-cell" mat-cell *matCellDef="let row">
+          <ul class="list-inline m-0">
+            <li class="list-inline-item">
+              <button (click)="openEditForm(row)" class="btn btn-success btn-sm rounded-0" type="button" data-toggle="tooltip" data-placement="top" title="Edit">
+                <i class="fa fa-edit"></i>
+              </button>
+            </li>
+            <li class="list-inline-item">
+              <button (click)="openConfirmDialog(row.id)" class="btn btn-danger btn-sm rounded-0" type="button" data-toggle="tooltip" data-placement="top" title="Delete">
+                <i class="fa fa-trash"></i>
+              </button>
+            </li>
+          </ul>
+        </td>
+      </ng-container>
+
+      <!-- Définition des lignes du tableau -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [length]="length" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons></mat-paginator>
+  </div>
+</div>

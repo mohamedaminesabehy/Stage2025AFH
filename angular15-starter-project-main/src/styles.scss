@@ -1,0 +1,195 @@
+@import 'primeng/resources/themes/saga-blue/theme.css';
+@import 'primeng/resources/primeng.min.css';
+@import './styles-arabic.css';
+
+
+$custom-body-color: #ebebeb;
+body {
+  background-color: $custom-body-color;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+/* ========== Global Design Tokens ========== */
+:root {
+  --color-primary: #3498db;
+  --color-primary-600: #2f86c2;
+  --color-success: #2ecc71;
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-text: #2c3e50;
+  --color-muted: #7f8c8d;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --border: #ecf0f1;
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* Utility classes */
+.text-muted { color: var(--color-muted) !important; }
+.card-surface { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.card-header-gradient { background: linear-gradient(180deg, #ffffff 0%, #f7f9fb 100%); }
+.btn-primary-ghost { background:#fff; color: var(--color-primary); border:1px solid var(--color-primary); }
+
+/* Base tweaks */
+* { box-sizing: border-box; }
+button { outline: none; }
+button:focus-visible { outline: 3px solid rgba(52,152,219,.25); outline-offset: 2px; }
+/* ========== Table Utilities (Global) ========== */
+.table-container {
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.table-sticky thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-primary);
+  color: white;
+}
+
+.table-responsive {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th, td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #fcfdff;
+  }
+}
+
+.cell-ellipsis {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Mobile responsive tables */
+@media (max-width: 768px) {
+  .table-mobile-cards {
+    display: block;
+
+    thead { display: none; }
+
+    tbody, tr, td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    td {
+      border: none;
+      padding: 6px 0;
+      position: relative;
+      padding-left: 120px;
+
+      &:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 110px;
+        font-weight: 600;
+        color: var(--color-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+/* Pagination utilities */
+.pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.page-size-selector select {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--color-text);
+}
+
+.page-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--color-text);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  &.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--color-muted);
+}

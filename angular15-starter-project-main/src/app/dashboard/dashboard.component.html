@@ -1,0 +1,353 @@
+<div class="dashboard">
+  <!-- En-tête avec statut et actions -->
+  <div class="dashboard-header">
+    <div class="title-section">
+      <h2>Tableau de bord ACHAT</h2>
+      <span class="subtitle">Agence Foncière d'Habitation (AFH) - Vue d'ensemble</span>
+    </div>
+    <div class="actions-section">
+      <div class="system-status" [ngClass]="systemStatus.apiStatus">
+        <span class="status-indicator"></span>
+        <span class="status-text">Système: {{systemStatus.apiStatus === 'online' ? 'En ligne' : 'Chargement...'}}</span>
+        <span class="last-update">Dernière mise à jour: {{systemStatus.lastUpdate | date:'HH:mm'}} </span>
+      </div>
+      <button class="refresh-btn" (click)="refreshAllData()">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Cartes d'information: Totaux -->
+  <div class="cards-container">
+    <div class="card">
+      <div class="icon"><i class="fas fa-truck"></i></div>
+      <div class="info">
+        <h3>Fournisseurs</h3>
+        <p>{{fournisseursCount}}</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon"><i class="fas fa-file-contract"></i></div>
+      <div class="info">
+        <h3>Marchés</h3>
+        <p>{{marchesCount}}</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon"><i class="fas fa-box"></i></div>
+      <div class="info">
+        <h3>Articles</h3>
+        <p>{{articlesCount}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== NOUVEAUX WIDGETS DE STATISTIQUES ========== -->
+  <div class="widgets-stats-container">
+    <div class="widget-stat" *ngFor="let widget of statWidgets">
+      <div class="widget-icon" [style.background-color]="widget.color + '20'" [style.color]="widget.color">
+        <i [class]="widget.icon"></i>
+      </div>
+      <div class="widget-info">
+        <h4>{{widget.title}}</h4>
+        <p class="widget-value">{{widget.value}}</p>
+        <span class="widget-trend" *ngIf="widget.trend"
+              [ngClass]="'trend-' + widget.trend.direction">
+          <i [class]="'fas fa-arrow-' + (widget.trend.direction === 'up' ? 'up' : widget.trend.direction === 'down' ? 'down' : 'right')"></i>
+          {{widget.trend.value}}%
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ALERTES DASHBOARD ========== -->
+  <!-- Section alertes retirée selon la demande -->
+
+
+  <!-- Contenu principal -->
+  <div class="main-content">
+    <!-- Colonne gauche: Graphiques -->
+    <div class="charts-section">
+      <div class="chart-container" *ngIf="topFournisseurs.labels && topFournisseurs.labels.length > 0">
+        <h4 class="chart-title"><i class="fas fa-people-carry"></i> Top fournisseurs</h4>
+        <canvas baseChart
+          [data]="topFournisseurs"
+          [options]="barChartOptions"
+          [type]="'bar'">
+        </canvas>
+      </div>
+
+
+      <!-- ========== NOUVEAUX GRAPHIQUES WIDGETS ========== -->
+
+      <!-- Graphique évolution des paiements -->
+      <div class="chart-container" *ngIf="evolutionPaiementsChart.labels && evolutionPaiementsChart.labels.length > 0">
+        <h4 class="chart-title">
+          <i class="fas fa-chart-line"></i> Évolution des paiements
+        </h4>
+        <canvas baseChart
+          [data]="evolutionPaiementsChart"
+          [options]="lineChartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
+
+      <!-- Graphique répartition par secteur -->
+      <div class="chart-container sector-bar" *ngIf="secteurChart.labels && secteurChart.labels.length > 0">
+        <h4 class="chart-title">
+          <i class="fas fa-industry"></i> Répartition par secteur (Marchés et articles)
+        </h4>
+        <canvas baseChart
+          [data]="secteurChart"
+          [options]="secteurBarOptions"
+          [type]="'bar'">
+        </canvas>
+      </div>
+
+      <!-- Graphique évolution des prix -->
+      <div class="chart-container" *ngIf="evolutionPrixChart.labels && evolutionPrixChart.labels.length > 0">
+        <h4 class="chart-title">
+          <i class="fas fa-coins"></i> Évolution des prix
+        </h4>
+        <canvas baseChart
+          [data]="evolutionPrixChart"
+          [options]="lineChartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
+
+      <!-- Garanties détaillées (sous Évolution des prix) -->
+      <div class="garanties-detaillees" *ngIf="garantiesData.garantiesEcheanceList?.length">
+        <div class="d-flex align-items-center justify-content-between">
+          <h4 class="chart-title">
+            <i class="fas fa-shield-alt"></i> Garanties détaillées
+          </h4>
+          <!-- Filtres -->
+          <div class="filters d-flex gap-2">
+            <input class="form-control form-control-sm" type="text" placeholder="Filtrer marché..." [(ngModel)]="garantieFilter.marche" (ngModelChange)="applyGarantiesFilter()" />
+            <select class="form-select form-select-sm" [(ngModel)]="garantieFilter.type" (change)="applyGarantiesFilter()">
+              <option value="">Tous types</option>
+              <option *ngFor="let t of garantiesTypesOptions" [value]="t">{{t}}</option>
+            </select>
+            <!-- Filtres de date supprimés -->
+          </div>
+        </div>
+
+        <div class="table-wrapper mt-3">
+          <div class="loading-overlay" *ngIf="isGarantiesLoading">
+            <div class="spinner-border text-primary spinner-border-sm" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <span class="ms-2">Chargement des garanties...</span>
+          </div>
+          <table class="table table-sm table-zebra">
+            <thead>
+              <tr>
+                <th class="sticky">Marché</th>
+                <th class="sticky">Type</th>
+                <th class="text-end sticky">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!isGarantiesLoading && garantiesTotal === 0">
+                <td colspan="3" class="text-center text-muted py-3">Aucune garantie à afficher</td>
+              </tr>
+              <tr *ngFor="let g of garantiesPage">
+                <td class="truncate" [title]="g.marcheDesignation">{{g.marcheDesignation}}</td>
+                <td>{{g.typeGarantie}}</td>
+                <td class="text-end">{{formatCurrency(g.montant)}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <label class="me-1 text-muted">Items per page:</label>
+                      <select class="form-select form-select-sm w-auto" [ngModel]="garantiesPageSize" (ngModelChange)="garantiesChangePageSize($event)">
+                        <option *ngFor="let s of garantiesPageSizeOptions" [value]="s">{{s}}</option>
+                      </select>
+                      <small class="text-muted ms-2">{{garantiesRangeLabel}}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="garantiesPageIndex === 0" (click)="garantiesFirst()">« Première</button>
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="garantiesPageIndex === 0" (click)="garantiesPrev()">‹ 10 précédentes</button>
+                      <button class="btn btn-sm btn-primary" [disabled]="(garantiesPageIndex + 1) * garantiesPageSize >= garantiesTotal" (click)="garantiesNext()">10 suivantes ›</button>
+                      <button class="btn btn-sm btn-outline-secondary" [disabled]="(garantiesPageIndex + 1) * garantiesPageSize >= garantiesTotal" (click)="garantiesLast()">Dernière »</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-end mt-2">
+          <button class="btn btn-link btn-sm" (click)="garantieFilter = { marche: '', type: '' }; applyGarantiesFilter()">
+            Réinitialiser les filtres
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Colonne droite: Widgets et activités -->
+    <div class="widgets-section">
+
+      <!-- ========== NOUVEAUX WIDGETS MÉTIER ========== -->
+
+      <!-- Widget Pénalités -->
+      <div class="widget penalites-widget">
+        <div class="widget-header">
+          <h3><i class="fas fa-exclamation-triangle"></i> Gestion des Pénalités</h3>
+        </div>
+        <div class="widget-content">
+          <div class="penalites-summary">
+            <div class="penalite-stat">
+              <span class="stat-value">{{penalitesData.penalitesEnCours}}</span>
+              <span class="stat-label">Pénalités en cours</span>
+            </div>
+            <div class="penalite-stat">
+              <span class="stat-value">{{formatCurrency(penalitesData.montantTotalPenalites)}}</span>
+              <span class="stat-label">Montant total</span>
+            </div>
+          </div>
+          <div class="top-marches-penalites" *ngIf="penalitesData.topMarchesAvecPenalites.length > 0">
+            <h5>Marchés les plus pénalisés</h5>
+            <div class="marche-penalite" *ngFor="let marche of penalitesData.topMarchesAvecPenalites.slice(0, 3)">
+              <span class="marche-name">{{marche.designation}}</span>
+              <span class="penalite-count">{{marche.nombrePenalites}} pénalité(s)</span>
+              <span class="penalite-amount">{{formatCurrency(marche.montantTotal)}}</span>
+            </div>
+            <!-- Répartition par type -->
+            <div class="penalites-types" *ngIf="penalitesData.penalitesParType?.length">
+              <h5>Répartition par type</h5>
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th class="text-end">Nombre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let t of penalitesData.penalitesParType">
+                    <td>{{t.designation}}</td>
+                    <td class="text-end">{{t.nombre}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+            <!-- Graphique pénalités par type -->
+            <div class="penalites-chart" *ngIf="penalitesTypeChart.labels && penalitesTypeChart.labels.length > 0">
+              <canvas baseChart
+                [data]="penalitesTypeChart"
+                [type]="'doughnut'"
+                [options]="{responsive: true, maintainAspectRatio: false}">
+              </canvas>
+            </div>
+
+        </div>
+      </div>
+
+      <!-- Widget Garanties -->
+      <div class="widget garanties-widget">
+        <div class="widget-header">
+          <h3><i class="fas fa-shield-alt"></i> Suivi des Garanties</h3>
+        </div>
+        <div class="widget-content">
+          <div class="garanties-summary">
+            <div class="garantie-stat urgent" *ngIf="garantiesData.garantiesEcheance > 0">
+              <span class="stat-value">{{garantiesData.garantiesEcheance}}</span>
+              <span class="stat-label">À échéance (30j)</span>
+            </div>
+            <div class="garantie-stat">
+              <span class="stat-value">{{formatCurrency(garantiesData.montantTotalGaranties)}}</span>
+              <span class="stat-label">Montant total</span>
+            </div>
+          </div>
+          <!-- Graphique garanties par type -->
+          <div class="garanties-chart" *ngIf="garantiesChart.labels && garantiesChart.labels.length > 0">
+            <canvas baseChart
+              [data]="garantiesChart"
+              [type]="'doughnut'"
+              [options]="{responsive: true, maintainAspectRatio: false}">
+            </canvas>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Widget Décomptes -->
+      <div class="widget decomptes-widget">
+        <div class="widget-header">
+          <h3><i class="fas fa-calculator"></i> Analyse des Décomptes</h3>
+        </div>
+        <div class="widget-content">
+          <div class="decomptes-summary">
+            <div class="decompte-stat" [ngClass]="{'urgent': decomptesData.decomptesEnAttente > 10}">
+              <span class="stat-value">{{decomptesData.decomptesEnAttente}}</span>
+              <span class="stat-label">En attente</span>
+            </div>
+            <div class="decompte-stat" [ngClass]="{'urgent': decomptesData.retardsPaiement > 0}">
+              <span class="stat-value">{{decomptesData.retardsPaiement}}</span>
+              <span class="stat-label">Retards paiement</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+      <!-- Accès rapides -->
+      <div class="quick-access">
+        <h3 class="section-title">Accès rapides</h3>
+        <div class="quick-access-grid">
+          <div class="quick-access-item" *ngFor="let item of quickAccess" (click)="navigateToPath(item.route)" [style.background-color]="item.color">
+            <i class="fas {{item.icon}}"></i>
+            <span>{{item.label}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activités récentes -->
+      <div class="recent-activities">
+        <h3 class="section-title">Activités récentes</h3>
+        <div class="activity-list">
+          <div class="activity-item" *ngFor="let activity of recentActivities" [ngClass]="activity.type">
+            <div class="activity-icon">
+              <i class="fas" [ngClass]="{
+                'fa-plus-circle': activity.type === 'add',
+                'fa-edit': activity.type === 'edit',
+                'fa-exclamation-triangle': activity.type === 'alert',
+                'fa-check-circle': activity.type === 'success'
+              }"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-message">{{activity.message}}</div>
+              <div class="activity-meta">
+                <span class="activity-time">{{activity.time}}</span>
+                <span class="activity-user">par {{activity.user}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Pied de page -->
+  <div class="dashboard-footer">
+    <div class="company-info">
+      <p>Agence Foncière d'Habitation (AFH) - Av. Hedi Karray, Tunis</p>
+      <p>Tél: 71 234 033 / 71 238 129</p>
+    </div>
+    <div class="app-info">
+      <p>Application ACHAT - Version 1.2.0</p>
+    </div>
+  </div>
+</div>

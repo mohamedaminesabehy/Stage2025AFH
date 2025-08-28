@@ -1,0 +1,19 @@
+<mat-dialog-content>
+    <h2 mat-dialog-title>Entrer le code Administrateur</h2>
+    <form [formGroup]="codeForm">
+      <mat-form-field appearance="fill" style="width: 100%;">
+        <mat-label>Code</mat-label>
+        <input type="text" matInput formControlName="code" placeholder="Entrez le code" />
+        <mat-error *ngIf="codeForm.get('code')?.hasError('required') && codeForm.get('code')?.touched">
+          Le code est requis
+        </mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <div class="button-container">
+    <button mat-button (click)="onNoClick()">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="codeForm.invalid || codeForm.get('code')?.value !== StaticCodeAdminInfo">Valider</button>
+    </div>
+  </mat-dialog-actions>
+  
